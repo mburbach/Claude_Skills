@@ -64,6 +64,15 @@ These rules apply to everything that ends up in Jira: summaries, descriptions, c
 
 The summary is the one line that shows up on the board, in the backlog, in every filter and in every notification. Most people never open the description, so the summary has to carry the ticket on its own.
 
+**Knapp und trotzdem passend.** The summary names what is inside this ticket, not the category it belongs to. Both failure directions are common:
+
+- Too vague. "Löschfristen anpassen" or "Refactoring Antragsservice" could sit on fifteen different tickets. If another ticket in the same area could carry the same summary word for word, it is not a summary yet, it is a label for the area.
+- Too full. The whole description squeezed into one line. If the summary needs a subordinate clause or an "und" to stay accurate, the detail belongs into the Ziel, or the ticket needs a split, see Check 1.
+
+Aim for the shortest wording that still says what is inside. Cut whatever the reader already gets from project, component, Epic or parent, and keep exactly what distinguishes this ticket from the ones next to it.
+
+Test before presenting: read the summary on its own, without the description. Someone who knows the project has to be able to say what will be different once the ticket is done. If they can only name the area it touches, the summary is still a category and needs another pass. This applies to Epics, Stories and Tasks alike, only the grammatical form differs.
+
 The form follows the issue type, because the types are different kinds of thing. An Epic is a theme, a Task is an assignment, a Bug is an observation.
 
 - **Epic: nominal.** "Mandantenfähigkeit der Beihilfeberechnung", not "Beihilfeberechnung mandantenfähig machen". An Epic runs for months and describes an area, so a verb makes it sound like a single step.
@@ -188,7 +197,7 @@ For every proposed Sub-Task give a summary and one line of scope, so the user ca
 - Parent, issue type and labels fit the content.
 - Every reference to another ticket uses a real key that exists.
 - The writing style rules hold, in particular no dashes, no semicolons, and every abbreviation that needs it is spelled out once.
-- The summary follows the rules in "Summaries" and matches what a reader would expect to find in the description.
+- The summary follows the rules in "Summaries" and matches what a reader would expect to find in the description. Run the standalone test explicitly: does the summary alone say what changes, or does it only name an area, and could a neighbouring ticket carry the same line?
 
 ### Review output format
 
