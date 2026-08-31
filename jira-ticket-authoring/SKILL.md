@@ -64,13 +64,22 @@ These rules apply to everything that ends up in Jira: summaries, descriptions, c
 
 The summary is the one line that shows up on the board, in the backlog, in every filter and in every notification. Most people never open the description, so the summary has to carry the ticket on its own.
 
-- One line, aim for under roughly 70 characters so it is not cut off in board and backlog views.
-- Name the outcome, not the activity. "Löschfristenjob trennt Mandanten korrekt" says more than "Anpassung Löschfristenjob".
-- German tickets start with the verb in the infinitive, for example "Mandantentrennung im Löschfristenjob umsetzen". It reads as work to be done and stays short.
+The form follows the issue type, because the types are different kinds of thing. An Epic is a theme, a Task is an assignment, a Bug is an observation.
+
+- **Epic: nominal.** "Mandantenfähigkeit der Beihilfeberechnung", not "Beihilfeberechnung mandantenfähig machen". An Epic runs for months and describes an area, so a verb makes it sound like a single step.
+- **Story, Task and Sub-Task: verb in the infinitive at the end, object first.** "Löschfristenjob auf Mandantentrennung umstellen", "JWTUtil threadsicher machen". Putting the object first keeps the distinguishing noun in the leftmost column of the backlog, where a nominal summary would show "Umstellung" or "Anpassung" for the twentieth time in a row.
+- **Bug: a declarative sentence in the present tense** that states the wrong behavior. "Beihilfeberechnung rundet Teilbeträge kaufmännisch statt ab". Never name the suspected fix, because at the time of writing nobody knows whether it is the cause. "Rundung korrigieren" claims a solution the ticket has not earned yet.
+
+The infinitive is not just a style choice. A nominalization hides missing precision, so "Anpassung des Löschfristenjobs" looks like a finished summary while saying nothing. The infinitive forces a real verb, and an empty one like "anpassen" is then obvious at a glance.
+
+Further rules, independent of type:
+
+- One line, aim for under roughly 70 characters so it is not cut off in board and backlog views. German nominalizations blow through this quickly through genitive chains, which is another reason the infinitive wins for work items.
+- Name the outcome, not the activity.
 - No issue type in the text ("Task: ...", "Bug: ..."), the type is its own field.
 - No filler openers such as "Anpassung von", "Überarbeitung der", "Konzept für".
-- A bug names the wrong behavior, not the suspected fix. "Beihilfeberechnung rundet Teilbeträge falsch" beats "Rundung korrigieren", because at the time of writing nobody knows yet whether rounding is the cause.
-- A Sub-Task does not repeat its parent's summary. It names only its own part.
+- A Story keeps the user role out of the summary and puts it into the Ziel, otherwise the sentence gets long. "Massenfreigabe von Anträgen ermöglichen" instead of "Sachbearbeitern die Massenfreigabe von Anträgen ermöglichen".
+- A Sub-Task does not repeat its parent's summary. It names only its own part, and it may drop the verb when the parent already supplies the context, for example "Migrationsskript für Bestandsanträge".
 - Component prefixes in brackets only if the project already uses them. Check a handful of existing tickets before introducing a pattern of your own.
 - The abbreviation rule from "Writing style" does not apply here. There is no room for it in one line, so the long form goes into the Ziel.
 
