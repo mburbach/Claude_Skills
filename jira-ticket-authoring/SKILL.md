@@ -15,6 +15,7 @@ Failure modes this skill exists to prevent, all observed in practice:
 2. **Broken formatting.** Passing a description as a single-line string with literal `\n` characters instead of real line breaks renders as visible backslash-n text in Jira. See "Formatting gotcha" below.
 3. **Machine-sounding text.** Tickets that read like generated text stand out in a backlog written by humans. See "Writing style" below.
 4. **Tickets that are too coarse or incomplete.** A ticket that bundles three independent deliverables blocks the board for weeks, and a ticket that quietly drops half of what was discussed causes rework. The review pass in step 4 catches both before anything is created.
+5. **Wuchernde Akzeptanzkriterien.** Criteria lists that keep growing until nobody reads them. Every line has to be verified at acceptance, so a list of twelve turns the check into a formality. See "Akzeptanzkriterien kurz halten".
 
 ## Workflow
 
@@ -99,8 +100,31 @@ Structure every description with these sections, in this order, using real Markd
 - **Ziel** is one or two sentences on what this achieves and why it is being done, not just what it contains.
 - **Kontext** is the background needed to understand the why: constraints, related tickets, prior decisions, risks that motivate this work. Skip it if the Ziel already says everything necessary.
 - **Aufgaben** are the concrete work items as a bullet list. If the ticket spans clearly separate areas, for example backend and frontend or two independent components, split into labeled sub-lists (**Aufgaben Backend** / **Aufgaben Frontend**) instead of one flat list. Only do this when the split is real, don't force it for a single-area ticket.
-- **Akzeptanzkriterien** are observable, checkable conditions for "fertig". Prefer specific and testable phrasing over vague wording. "Test X ist grün" beats "funktioniert".
+- **Akzeptanzkriterien** are the few observable conditions that decide whether the ticket is done. Specific and testable beats vague, so "Test X ist grün" beats "funktioniert". Keep the list short, see "Akzeptanzkriterien kurz halten".
 - **Technische Hinweise** are implementation pointers worth preserving, such as class or file names, patterns to follow, things to explicitly avoid. Only include this section if there is something concrete to say. It is the first section to drop if the ticket is straightforward.
+
+## Akzeptanzkriterien kurz halten
+
+Long criteria lists are the most common defect in our tickets. They read like thoroughness and cost real time, because every line has to be checked at acceptance, discussed in refinement and kept in sync when the ticket changes. A ticket with twelve criteria gets skimmed, so in practice it has none.
+
+**Target three criteria, five is the ceiling.** For a Sub-Task one is often enough. If you cannot get under six, that is a finding, not a formatting problem. Either the ticket is too big and Check 1 applies, or most of the lines are not acceptance criteria at all.
+
+What earns a line:
+
+- The condition can be checked from the outside, by looking at the running system, a test result or an artefact. Not by reading the diff.
+- It could plausibly fail. A criterion nobody would ever mark as not met carries no information.
+- It is what the reviewer would actually look at first when the ticket lands in review.
+
+What does not earn a line, and where it goes instead:
+
+- A restatement of an Aufgabe. If the criterion is the task written in the perfect tense, delete it. The Aufgaben list already says the work has to happen.
+- Standard practice the team applies to every ticket anyway, for example "Code ist reviewed", "Build läuft durch", "keine neuen Warnungen". That belongs into the Definition of Done, not into the ticket. Only write it down when this ticket needs something the Definition of Done does not cover.
+- Implementation detail, for example which class holds the new method. That is a Technischer Hinweis.
+- A wish that is not part of this ticket, for example performance targets nobody measured. Either it is in scope and gets an Aufgabe, or it is out of scope and gets its own ticket.
+
+Merge before you cut. Criteria that always pass together or fail together are one criterion, so three lines about the same import run become "Der Import verarbeitet die Bestandsdatei ohne Fehler und protokolliert die Anzahl der übernommenen Sätze". Cutting a real condition to hit the number is worse than five good lines.
+
+Tests are covered by one line, not by one line per test. "Die Regressionstests für die Rundung sind grün" is enough, the test names belong into the Aufgaben or into Technische Hinweise.
 
 ## Bug-Tickets
 
@@ -112,7 +136,7 @@ A bug report answers different questions than a piece of planned work, so it get
 - **Umgebung** is whatever is relevant to narrow it down: version or build, stage, browser, database, tenant, user role, time of occurrence.
 - **Auswirkung** is who is affected, how often, and what the damage is (falsche Auszahlung, blockierter Prozess, kosmetisch). This is what drives priority, so it is not optional.
 - **Analyse** is optional and holds what is already known about the cause: a stack trace excerpt, a suspected code location, a related change. Only write it when there is something concrete.
-- **Akzeptanzkriterien** work as usual. For a bug the first one is normally that the reproduction steps no longer produce the wrong behavior, plus a regression test that fails without the fix.
+- **Akzeptanzkriterien** work as usual and are usually two lines. The reproduction steps no longer produce the wrong behavior, and a regression test that fails without the fix is green with it.
 
 Rules for bug tickets:
 
@@ -177,6 +201,8 @@ Aspects that are typically forgotten, check each one and only report the ones th
 
 Also check the inverse direction: does the draft contain Aufgaben that nobody asked for, and does every Akzeptanzkriterium have a matching Aufgabe and the other way round.
 
+Completeness is not a reason to add criteria. Something that is missing gets an Aufgabe, and only the few conditions from "Akzeptanzkriterien kurz halten" become criteria.
+
 ### Check 3: Subtasks
 
 Propose Sub-Tasks when the ticket stays one deliverable but has internal structure worth tracking:
@@ -193,6 +219,7 @@ For every proposed Sub-Task give a summary and one line of scope, so the user ca
 ### Check 4: Konsistenz und Stil
 
 - Ziel, Aufgaben and Akzeptanzkriterien describe the same piece of work, without one of them being wider than the others.
+- Count the Akzeptanzkriterien. More than five is a finding. Report which lines are restated Aufgaben, standard practice from the Definition of Done or implementation detail, and propose the shortened list. If nothing can go, say that the ticket is too big and hand it to Check 1.
 - The summary matches what the description actually asks for.
 - Parent, issue type and labels fit the content.
 - Every reference to another ticket uses a real key that exists.
