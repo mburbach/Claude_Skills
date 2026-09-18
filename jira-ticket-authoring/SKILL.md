@@ -16,6 +16,7 @@ Failure modes this skill exists to prevent, all observed in practice:
 3. **Machine-sounding text.** Tickets that read like generated text stand out in a backlog written by humans. See "Writing style" below.
 4. **Tickets that are too coarse or incomplete.** A ticket that bundles three independent deliverables blocks the board for weeks, and a ticket that quietly drops half of what was discussed causes rework. The review pass in step 4 catches both before anything is created.
 5. **Wuchernde Akzeptanzkriterien.** Criteria lists that keep growing until nobody reads them. Every line has to be verified at acceptance, so a list of twelve turns the check into a formality. See "Akzeptanzkriterien kurz halten".
+6. **Verweise auf andere Tickets im Text.** A key like "siehe CD-83" in a description makes the reader believe there is more work for them in that other ticket, and it forces them to open it to understand this one. See "Keine Verweise auf andere Tickets".
 
 ## Workflow
 
@@ -36,7 +37,7 @@ Once confirmed, write these coordinates into the project memory: site and cloud 
 
 Nothing reaches the target system without a confirmation for exactly that content. This covers creating issues, editing existing ones, comments, issue links, labels and status transitions. If the user changes something after seeing the draft, show the changed items again in their final form and wait again. A change request is an instruction, not an approval of the result. When only part of the batch changed, re-show only that part and state plainly that the rest is unchanged. If the user asks for an Epic and none of the existing ones fit, propose a concrete name and description and get a decision before creating it. Don't default to creating one silently, and don't default to reusing an ill-fitting existing Epic either.
 
-**6. Create in dependency order.** Epic before its children. Parent Task before its Sub-Tasks, because Sub-Tasks require an existing parent key at creation time. If several issues reference each other, for example "siehe CD-83", create the referenced one first so you can link by key. Set the issue links afterwards, see "Verlinkung".
+**6. Create in dependency order.** Epic before its children. Parent Task before its Sub-Tasks, because Sub-Tasks require an existing parent key at creation time. Set the issue links once all issues of the batch exist, see "Verlinkung".
 
 **7. Report back.** After creation, map every created key to its title and role so the user can cross-reference against the draft they approved, for example a small table with key, summary, type and parent.
 
@@ -98,10 +99,45 @@ Further rules, independent of type:
 Structure every description with these sections, in this order, using real Markdown headers or bold. Omit a section entirely when it doesn't apply, don't write an empty placeholder.
 
 - **Ziel** is one or two sentences on what this achieves and why it is being done, not just what it contains.
-- **Kontext** is the background needed to understand the why: constraints, related tickets, prior decisions, risks that motivate this work. Skip it if the Ziel already says everything necessary.
-- **Aufgaben** are the concrete work items as a bullet list. If the ticket spans clearly separate areas, for example backend and frontend or two independent components, split into labeled sub-lists (**Aufgaben Backend** / **Aufgaben Frontend**) instead of one flat list. Only do this when the split is real, don't force it for a single-area ticket.
+- **Kontext** is the background needed to understand the why: constraints, prior decisions, risks that motivate this work. Write it as two or three plain sentences, not as a bullet list. Skip it if the Ziel already says everything necessary.
+- **Aufgaben** are the concrete work items as a bullet list, written like short working notes a colleague would jot down. If the ticket spans clearly separate areas, for example backend and frontend or two independent components, split into labeled sub-lists (**Aufgaben Backend** / **Aufgaben Frontend**) instead of one flat list. Only do this when the split is real, don't force it for a single-area ticket.
 - **Akzeptanzkriterien** are the few observable conditions that decide whether the ticket is done. Specific and testable beats vague, so "Test X ist grün" beats "funktioniert". Keep the list short, see "Akzeptanzkriterien kurz halten".
-- **Technische Hinweise** are implementation pointers worth preserving, such as class or file names, patterns to follow, things to explicitly avoid. Only include this section if there is something concrete to say. It is the first section to drop if the ticket is straightforward.
+- **Technische Hinweise** are implementation pointers worth preserving, such as class or file names, patterns to follow, things to explicitly avoid. Name them without explaining around them. Only include this section if there is something concrete to say. It is the first section to drop if the ticket is straightforward.
+
+## Wie ein Kollege schreibt
+
+The writing style rules work on the sentence level. Generated text is often recognizable by its structure instead, even when every single sentence is clean. Watch for these patterns in Kontext, Aufgaben, Akzeptanzkriterien and Technische Hinweise:
+
+- Every bullet has the same length and the same build, often with a bold keyword and a colon at the start. Real notes are uneven, some bullets are three words and some are a full sentence.
+- Aufgaben start with the same stereotyped phrase, such as "Sicherstellen, dass …", "Implementierung von …" or "Anpassung der …". Write what is done: "Rundung in BeihilfeRechner auf abrunden umstellen".
+- Hedges without a real condition, such as "gegebenenfalls", "bei Bedarf" or "falls erforderlich". Either the condition is known and gets named, or the item is in scope, or it goes.
+- Explanations of things the team already knows, for example what a feature flag is or why tests matter.
+- Headings or bold labels inside a section that has only three lines.
+
+Test: would a developer in the team have written this ticket in this form in five minutes? If the text looks more polished than the tickets around it in the backlog, it is too polished.
+
+## Jede Information einmal
+
+Every piece of information appears exactly once in the ticket, in the section where it belongs. A reader who finds the same thing twice starts looking for the difference between the two versions.
+
+Typical duplicates:
+
+- The Kontext restates the Ziel in other words. Keep it in the Ziel and let the Kontext carry only the background.
+- The Technische Hinweise repeat Aufgaben with class names added. Put the class name into the Aufgabe and drop the hint.
+- Akzeptanzkriterien restate Aufgaben, see "Akzeptanzkriterien kurz halten".
+
+Hints that would fit any ticket carry no information and get deleted, for example "bestehende Funktionalität darf nicht beeinträchtigt werden", "Clean Code beachten", "Tests schreiben" or "mit dem Team abstimmen". The same goes for a hint that only repeats a team convention everybody follows anyway. Only write down what is specific to this ticket.
+
+## Keine Verweise auf andere Tickets
+
+Descriptions contain no references to other tickets, neither as a key nor as a paraphrase like "siehe die Story zur Oberfläche". There is no exception to this rule, for no issue type.
+
+A reference in the text confuses the reader. It suggests that part of the work is hidden in the other ticket and that they have to read it to do this one. Tickets have to be understandable on their own.
+
+- Relations between tickets go into issue links, see "Verlinkung". The board and the filters show them there, and they don't pretend to be part of the description.
+- If something from another ticket is needed to understand this one, for example a decision made there, take over the content and summarize it in one sentence in the Kontext, without the key.
+- State the scope boundary as a fact about this ticket. "Die Oberfläche bleibt unverändert" instead of "Oberfläche siehe CD-91". The reader learns what is out of scope without being sent somewhere else.
+- The same applies to Epics, Sub-Tasks and bug reports. A Sub-Task does not point to its siblings, and a bug names the causing change in the Analyse by content, while the relation itself becomes a "verursacht" link.
 
 ## Akzeptanzkriterien kurz halten
 
@@ -222,7 +258,9 @@ For every proposed Sub-Task give a summary and one line of scope, so the user ca
 - Count the Akzeptanzkriterien. More than five is a finding. Report which lines are restated Aufgaben, standard practice from the Definition of Done or implementation detail, and propose the shortened list. If nothing can go, say that the ticket is too big and hand it to Check 1.
 - The summary matches what the description actually asks for.
 - Parent, issue type and labels fit the content.
-- Every reference to another ticket uses a real key that exists.
+- The description contains no references to other tickets, see "Keine Verweise auf andere Tickets". Every reference found is a finding, with a proposal for the link that replaces it and, where needed, the sentence that takes over its content. On an existing ticket written by someone else, report it as a suggested edit instead of removing it.
+- No information appears twice, and there are no hints that would fit any ticket, see "Jede Information einmal".
+- The text reads like the tickets around it, see "Wie ein Kollege schreibt".
 - The writing style rules hold, in particular no dashes, no semicolons, and every abbreviation that needs it is spelled out once.
 - The summary follows the rules in "Summaries" and matches what a reader would expect to find in the description. Run the standalone test explicitly: does the summary alone say what changes, or does it only name an area, and could a neighbouring ticket carry the same line?
 
@@ -261,6 +299,7 @@ When a body of work is large enough to need internal sequencing, for example "th
 
 A dependency that lives only in a sentence in a description is invisible on the board, in filters and in every planning view. Real relations belong into issue links.
 
+- The link replaces any mention in the description. Never write a key into the text in addition to the link.
 - Look up which link types the project actually offers before using one, they are configured per site and are often renamed.
 - Choose the type by what the relation really is instead of defaulting to "hängt zusammen mit" for everything:
   - **blockiert / wird blockiert von** for a hard order, where one ticket cannot start or cannot finish before the other is done. This is the type to use for the pieces that come out of a split in Check 1.
