@@ -1,0 +1,521 @@
+<title>__TITLE__</title>
+<style>
+:root {
+  --ground: #f4f6f5;
+  --surface: #ffffff;
+  --sunken: #eef1f0;
+  --ink: #18201e;
+  --muted: #5a6763;
+  --line: #d6ddda;
+  --accent: #0e6a5b;
+  --accent-soft: #dcefe9;
+  --blocker: #b42318;
+  --blocker-soft: #fdecea;
+  --sollte: #a44a06;
+  --sollte-soft: #fdf1e3;
+  --frage: #1d5fa8;
+  --frage-soft: #e6eefa;
+  --nit: #5f6b7a;
+  --nit-soft: #eef0f3;
+  --ok: #117a4b;
+  --mark: #fff4c2;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #111615;
+    --surface: #182120;
+    --sunken: #0d1211;
+    --ink: #e3ebe8;
+    --muted: #97a6a1;
+    --line: #2b3633;
+    --accent: #4fc4aa;
+    --accent-soft: #173a33;
+    --blocker: #f7877d;
+    --blocker-soft: #3a1c1a;
+    --sollte: #f5b25c;
+    --sollte-soft: #3a2a14;
+    --frage: #8db4f7;
+    --frage-soft: #1a2940;
+    --nit: #a4afbd;
+    --nit-soft: #252c33;
+    --ok: #5fd39a;
+    --mark: #3b3413;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #111615;
+  --surface: #182120;
+  --sunken: #0d1211;
+  --ink: #e3ebe8;
+  --muted: #97a6a1;
+  --line: #2b3633;
+  --accent: #4fc4aa;
+  --accent-soft: #173a33;
+  --blocker: #f7877d;
+  --blocker-soft: #3a1c1a;
+  --sollte: #f5b25c;
+  --sollte-soft: #3a2a14;
+  --frage: #8db4f7;
+  --frage-soft: #1a2940;
+  --nit: #a4afbd;
+  --nit-soft: #252c33;
+  --ok: #5fd39a;
+  --mark: #3b3413;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  padding-inline: 16px;
+  padding-block: 28px 64px;
+}
+.wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.25; }
+h1 { font-size: 1.85rem; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.15rem; font-weight: 600; }
+h3 { font-size: 1.02rem; font-weight: 600; }
+p { margin: 0; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+a { color: var(--accent); }
+.eyebrow { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.prose { max-width: 68ch; }
+
+/* Kopf */
+header { display: flex; flex-direction: column; gap: 14px; }
+.metaline { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 0.9rem; }
+.metaline code { color: var(--ink); }
+.verdict-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.verdict { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 6px 12px; border-radius: 6px; border: 1px solid currentColor; white-space: nowrap; }
+.verdict.ok { color: var(--ok); }
+.verdict.warn { color: var(--sollte); }
+.verdict.bad { color: var(--blocker); }
+.verdict-row .prose { flex: 1 1 320px; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px; font-variant-numeric: tabular-nums; }
+.stat { display: flex; align-items: baseline; gap: 6px; padding: 6px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-size: 0.88rem; }
+.stat b { font-size: 1.05rem; }
+
+/* Fortschritt und Filter */
+.toolbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--ground);
+  padding-block: 10px;
+  border-bottom: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.progress { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.bar { flex: 1 1 180px; height: 8px; background: var(--sunken); border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.bar > span { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s ease; }
+.storage-note { font-size: 0.8rem; color: var(--muted); }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip {
+  font: inherit; font-size: 0.85rem; cursor: pointer;
+  padding: 4px 10px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.chip:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.filters .spacer { flex: 1; }
+.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 0.85rem; cursor: pointer; }
+
+/* Abschnitte */
+section { display: flex; flex-direction: column; gap: 14px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+dl.kv { display: grid; grid-template-columns: minmax(110px, max-content) 1fr; gap: 6px 18px; margin: 0; }
+dl.kv dt { color: var(--muted); font-size: 0.88rem; }
+dl.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+ul.plain { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 4px; }
+.status-pill { display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+.status-pill.lauffaehig { background: var(--accent-soft); color: var(--ok); }
+.status-pill.eingeschraenkt { background: var(--sollte-soft); color: var(--sollte); }
+.status-pill.nicht_lauffaehig { background: var(--blocker-soft); color: var(--blocker); }
+pre.err { margin: 0; background: var(--sunken); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font-family: var(--mono); font-size: 0.8rem; overflow-x: auto; white-space: pre; }
+
+/* Findings */
+.findings { display: flex; flex-direction: column; gap: 18px; }
+.finding {
+  --sev: var(--nit); --sev-soft: var(--nit-soft);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+  border-left: 4px solid var(--sev);
+  display: flex; flex-direction: column;
+}
+.finding[data-schwere="Blocker"] { --sev: var(--blocker); --sev-soft: var(--blocker-soft); }
+.finding[data-schwere="Sollte"] { --sev: var(--sollte); --sev-soft: var(--sollte-soft); }
+.finding[data-schwere="Frage"] { --sev: var(--frage); --sev-soft: var(--frage-soft); }
+.finding.done { opacity: 0.72; }
+.finding.done:hover, .finding.done:focus-within { opacity: 1; }
+.f-head { display: flex; gap: 14px; padding: 14px 18px 10px; align-items: flex-start; }
+.check { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.7rem; color: var(--muted); cursor: pointer; padding-top: 2px; }
+.check input { width: 22px; height: 22px; accent-color: var(--accent); cursor: pointer; margin: 0; }
+.f-title { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 0.82rem; }
+.fid { font-family: var(--mono); font-weight: 500; color: var(--muted); }
+.sev { font-weight: 600; color: var(--sev); background: var(--sev-soft); padding: 1px 8px; border-radius: 4px; }
+.cat { color: var(--muted); }
+.verif { font-size: 0.8rem; padding: 1px 8px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+.verif.bestaetigt { color: var(--ok); border-color: currentColor; }
+.verif.plausibel { color: var(--sollte); border-color: currentColor; }
+.ort { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); overflow-wrap: anywhere; }
+.f-body { padding: 0 18px 14px; display: flex; flex-direction: column; gap: 14px; }
+.excerpt { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--sunken); }
+.excerpt-head { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); padding: 6px 12px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.code { margin: 0; overflow-x: auto; font-family: var(--mono); font-size: 0.8rem; line-height: 1.6; padding-block: 6px; }
+.code .l { display: flex; min-width: max-content; }
+.code .n { flex: 0 0 auto; width: 4.2em; text-align: right; padding-right: 12px; color: var(--muted); user-select: none; font-variant-numeric: tabular-nums; }
+.code .c { white-space: pre; padding-right: 16px; }
+.code .l.hit { background: var(--mark); }
+.code .l.hit .n { color: var(--sev); font-weight: 600; box-shadow: inset 3px 0 0 var(--sev); }
+.explain { display: grid; grid-template-columns: minmax(120px, max-content) 1fr; gap: 10px 18px; margin: 0; }
+.explain dt { font-weight: 600; font-size: 0.86rem; }
+.explain dd { margin: 0; max-width: 70ch; min-width: 0; overflow-wrap: anywhere; }
+.note-other { font-size: 0.86rem; background: var(--frage-soft); border-radius: 6px; padding: 8px 12px; }
+.f-foot { border-top: 1px solid var(--line); padding: 12px 18px; display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-start; background: var(--ground); border-radius: 0 0 8px 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg label { position: relative; font-size: 0.83rem; padding: 5px 11px; cursor: pointer; background: var(--surface); border-right: 1px solid var(--line); }
+.seg label:last-child { border-right: 0; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg input:checked + span { font-weight: 600; }
+.seg label:has(input:checked) { background: var(--ink); color: var(--surface); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.f-foot textarea { flex: 1 1 260px; min-height: 36px; resize: vertical; font: inherit; font-size: 0.86rem; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); }
+.btn { font: inherit; font-size: 0.83rem; cursor: pointer; padding: 5px 11px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.btn:hover { border-color: var(--accent); }
+.copy-fallback { flex-basis: 100%; }
+.copy-fallback textarea { width: 100%; min-height: 140px; font-family: var(--mono); font-size: 0.78rem; }
+.empty { color: var(--muted); font-style: italic; }
+details summary { cursor: pointer; font-weight: 600; }
+.discarded { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.discarded div { border-top: 1px solid var(--line); padding-top: 10px; }
+
+@media (max-width: 560px) {
+  dl.kv, .explain { grid-template-columns: 1fr; gap: 2px 0; }
+  .explain dd, dl.kv dd { margin-bottom: 8px; }
+  .f-head { padding: 12px 14px 8px; }
+  .f-body { padding: 0 14px 12px; }
+  .f-foot { padding: 12px 14px; }
+  h1 { font-size: 1.5rem; }
+}
+@media (prefers-reduced-motion: reduce) { .bar > span { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header id="kopf"></header>
+  <div class="toolbar" id="toolbar">
+    <div class="progress">
+      <span id="progress-text">0 von 0 geprüft</span>
+      <div class="bar" aria-hidden="true"><span id="progress-bar"></span></div>
+      <span class="storage-note" id="storage-note">Prüfstatus wird geladen</span>
+    </div>
+    <div class="filters" role="group" aria-label="Findings filtern">
+      <button class="chip" data-filter="alle" aria-pressed="true">Alle</button>
+      <button class="chip" data-filter="Blocker" aria-pressed="false">Blocker</button>
+      <button class="chip" data-filter="Sollte" aria-pressed="false">Sollte</button>
+      <button class="chip" data-filter="Frage" aria-pressed="false">Frage</button>
+      <button class="chip" data-filter="Nit" aria-pressed="false">Nit</button>
+      <span class="spacer"></span>
+      <label class="toggle"><input type="checkbox" id="nur-offen"> nur ungeprüfte</label>
+    </div>
+  </div>
+  <section id="sec-kontext"><h2>Kontext</h2><div class="panel" id="kontext"></div></section>
+  <section id="sec-lauf"><h2>Lauffähigkeit</h2><div class="panel" id="lauf"></div></section>
+  <section id="sec-findings"><h2>Findings</h2><div class="findings" id="findings"></div></section>
+  <section id="sec-positiv"><h2>Was gut gelöst ist</h2><div class="panel" id="positiv"></div></section>
+  <section id="sec-verworfen"><h2>Verworfene Kandidaten</h2><div class="panel" id="verworfen"></div></section>
+  <section id="sec-abschluss"><h2>Abschluss</h2><div class="panel" id="abschluss"></div></section>
+</div>
+
+<script>
+const DATA = /*__REVIEW_DATA__*/null;
+</script>
+<script>
+(function () {
+  const D = DATA || { meta: {}, findings: [] };
+  const M = D.meta || {};
+  const FINDINGS = D.findings || [];
+  const KAT_ICON = { Sicherheit: "🔴", Korrektheit: "🔴", Tests: "🟠", Architektur: "🟠", Wartbarkeit: "🟡", Stil: "⚪" };
+  const LAUF_TEXT = { lauffaehig: "Lauffähig", eingeschraenkt: "Eingeschränkt lauffähig", nicht_lauffaehig: "Nicht lauffähig" };
+
+  // ---------- kleine DOM-Helfer ----------
+  function el(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    if (attrs) for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? "" : v);
+    }
+    for (const k of kids.flat()) if (k != null && k !== "") n.append(k.nodeType ? k : document.createTextNode(String(k)));
+    return n;
+  }
+  function kv(pairs) {
+    const dl = el("dl", { class: "kv" });
+    for (const [k, v] of pairs) if (v != null && v !== "" && !(Array.isArray(v) && !v.length)) {
+      dl.append(el("dt", { text: k }), el("dd", null, v));
+    }
+    return dl;
+  }
+  function list(items) { return el("ul", { class: "plain" }, items.map(t => el("li", null, t))); }
+  function link(obj, label) { return obj && obj.url ? el("a", { href: obj.url, target: "_blank", rel: "noopener" }, label) : label; }
+
+  // ---------- Kopf ----------
+  const U = M.umfang || {};
+  const counts = { Blocker: 0, Sollte: 0, Frage: 0, Nit: 0 };
+  FINDINGS.forEach(f => { if (f.schwere in counts) counts[f.schwere]++; });
+  const verdictCls = M.urteil === "Freigeben" ? "ok" : M.urteil === "Überarbeiten" ? "bad" : "warn";
+  document.getElementById("kopf").append(
+    el("span", { class: "eyebrow", text: "Code Review" }),
+    el("h1", { text: M.titel || "Code Review" }),
+    el("div", { class: "metaline" },
+      M.repo ? el("span", null, "Repository ", el("code", { text: M.repo })) : null,
+      M.branch ? el("span", null, el("code", { text: M.branch }), " gegen ", el("code", { text: M.basis || "?" })) : null,
+      M.ticket ? el("span", null, "Ticket ", link(M.ticket, M.ticket.key || "")) : null,
+      M.mr ? el("span", null, "MR ", link(M.mr, "!" + (M.mr.nr || ""))) : null,
+      M.datum ? el("span", { text: M.datum }) : null,
+      M.stufe ? el("span", { text: "/code-review " + M.stufe }) : null
+    ),
+    el("div", { class: "verdict-row" },
+      M.urteil ? el("span", { class: "verdict " + verdictCls, text: M.urteil }) : null,
+      M.zusammenfassung ? el("p", { class: "prose", text: M.zusammenfassung }) : null
+    ),
+    el("div", { class: "stats" },
+      U.dateien != null ? el("span", { class: "stat" }, el("b", { text: U.dateien }), "Dateien") : null,
+      U.plus != null ? el("span", { class: "stat" }, el("b", { text: "+" + U.plus }), "/ −" + (U.minus ?? 0) + " Zeilen") : null,
+      Object.entries(counts).map(([k, v]) => el("span", { class: "stat" }, el("b", { text: v }), k))
+    )
+  );
+
+  // ---------- Kontext ----------
+  const K = D.kontext || {};
+  const kontextBox = document.getElementById("kontext");
+  kontextBox.append(kv([["Ziel", K.ziel], ["Quellen", (K.quellen || []).join(", ")]]));
+  if ((K.hinweise || []).length) kontextBox.append(list(K.hinweise));
+  if (!K.ziel) kontextBox.append(el("p", { class: "empty", text: "Ziel der Änderung konnte nicht ermittelt werden." }));
+
+  // ---------- Lauffähigkeit ----------
+  const L = D.lauffaehigkeit || {};
+  const laufBox = document.getElementById("lauf");
+  laufBox.append(
+    el("div", null, el("span", { class: "status-pill " + (L.status || ""), text: LAUF_TEXT[L.status] || "Nicht geprüft" })),
+    kv([["Befehl", L.befehl ? el("code", { text: L.befehl }) : ""], ["Ergebnis", L.ergebnis], ["Ursache", L.ursache], ["Testabdeckung", L.testabdeckung]])
+  );
+  if (L.fehler) laufBox.append(el("pre", { class: "err", text: L.fehler }));
+  if ((L.schritte || []).length) laufBox.append(el("h3", { text: "So wird es lauffähig" }), el("ol", { class: "plain" }, L.schritte.map(s => el("li", null, s))));
+
+  // ---------- Prüfstatus: Speicher ----------
+  const state = {};           // id -> {geprueft, urteil, notiz}
+  const nodes = {};           // id -> {card, cb, radios, note}
+  let store = null;           // {kind, write(id, obj)}
+  let readOnly = false;
+  const LS_KEY = "ecr:" + (M.repo || "") + ":" + (M.branch || "") + ":" + (M.basis || "");
+
+  function lsLoad() { try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch (e) { return {}; } }
+  function lsSave() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* ohne Speicher weiter */ } }
+  function setNote(text) { document.getElementById("storage-note").textContent = text; }
+
+  const queues = {};
+  function persist(id) {
+    const body = Object.assign({ geprueft: false, urteil: "offen", notiz: "" }, state[id], { aktualisiert: new Date().toISOString() });
+    if (!store) { lsSave(); return; }
+    queues[id] = (queues[id] || Promise.resolve()).then(() => store.write(id, body)).catch(err => {
+      if (err && err.code === "invalid_argument") {
+        readOnly = true; applyReadOnly();
+        setNote("Nur Lesezugriff. Änderungen werden nicht gespeichert.");
+      } else {
+        setNote("Speichern fehlgeschlagen, bitte später erneut versuchen.");
+      }
+    });
+  }
+  function applyReadOnly() {
+    for (const n of Object.values(nodes)) {
+      n.cb.disabled = readOnly; n.note.readOnly = readOnly;
+      n.radios.forEach(r => r.disabled = readOnly);
+    }
+  }
+
+  // ---------- Findings ----------
+  function excerptNode(a) {
+    const lines = String(a.code || "").replace(/\n$/, "").split("\n");
+    const hit = new Set(a.markiert || []);
+    const pre = el("pre", { class: "code" });
+    lines.forEach((t, i) => {
+      const nr = (a.start || 1) + i;
+      pre.append(el("div", { class: "l" + (hit.has(nr) ? " hit" : "") }, el("span", { class: "n", text: nr }), el("span", { class: "c", text: t || " " })));
+    });
+    const range = (a.start || 1) + "–" + ((a.start || 1) + lines.length - 1);
+    return el("div", { class: "excerpt" }, el("div", { class: "excerpt-head", text: (a.datei || "") + "  ·  Zeilen " + range }), pre);
+  }
+
+  function commentText(f) {
+    const parts = ["[" + f.schwere + "] " + f.ort, "", f.titel, "", f.warum];
+    if (f.szenario) parts.push("", "Szenario: " + f.szenario);
+    parts.push("", "Vorschlag: " + f.vorschlag);
+    if (f.vorschlag_code) parts.push("", "```", f.vorschlag_code, "```");
+    return parts.join("\n");
+  }
+
+  function copyComment(f, foot, btn) {
+    const text = commentText(f);
+    const fallback = () => {
+      let box = foot.querySelector(".copy-fallback");
+      if (!box) {
+        box = el("div", { class: "copy-fallback" }, el("textarea", { readonly: true, "aria-label": "Kommentartext zum Kopieren" }));
+        foot.append(box);
+      }
+      const ta = box.querySelector("textarea");
+      ta.value = text; ta.focus(); ta.select();
+      btn.textContent = "Text markiert, bitte kopieren";
+    };
+    try {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = "Kopiert";
+        setTimeout(() => { btn.textContent = "Als MR-Kommentar kopieren"; }, 1800);
+      }, fallback);
+    } catch (e) { fallback(); }
+  }
+
+  const list$ = document.getElementById("findings");
+  if (!FINDINGS.length) list$.append(el("div", { class: "panel" }, el("p", { class: "empty", text: "Keine Findings nach der Verifikation." })));
+
+  FINDINGS.forEach(f => {
+    state[f.id] = { geprueft: false, urteil: "offen", notiz: "" };
+    const p = f.pruefung || {};
+    const cb = el("input", { type: "checkbox", id: "chk-" + f.id, "aria-label": f.id + " als geprüft markieren" });
+    const radios = ["offen", "zutreffend", "fehlalarm"].map(v =>
+      el("input", { type: "radio", name: "urteil-" + f.id, id: "urteil-" + f.id + "-" + v, value: v, checked: v === "offen" }));
+    const radioLabels = { offen: "Offen", zutreffend: "Zutreffend", fehlalarm: "Fehlalarm" };
+    const note = el("textarea", { id: "notiz-" + f.id, placeholder: "Notiz zur Prüfung", rows: "1", "aria-label": "Notiz zu " + f.id });
+
+    const body = el("div", { class: "f-body" },
+      (f.auszuege || []).map(a => excerptNode(a)),
+      el("dl", { class: "explain" },
+        el("dt", { text: "Warum ist das ein Problem" }), el("dd", { text: f.warum || "" }),
+        f.szenario ? [el("dt", { text: "Szenario" }), el("dd", { text: f.szenario })] : null,
+        el("dt", { text: "Gegenprobe" }), el("dd", { text: f.gegenprobe || "" }),
+        el("dt", { text: "Vorschlag" }), el("dd", null, f.vorschlag || "",
+          f.vorschlag_code ? el("div", { class: "excerpt", style: "margin-top:8px" }, el("pre", { class: "code" },
+            String(f.vorschlag_code).split("\n").map(t => el("div", { class: "l" }, el("span", { class: "c", style: "padding-left:12px", text: t || " " }))))) : null),
+        el("dt", { text: "Quelle" }), el("dd", { class: "muted", text: (f.quelle || []).join(", ") })
+      ),
+      p.notiz ? el("div", { class: "note-other" }, el("b", { text: "Abweichende Sicht: " }), p.notiz) : null
+    );
+
+    const copyBtn = el("button", { class: "btn", type: "button", text: "Als MR-Kommentar kopieren" });
+    const foot = el("div", { class: "f-foot" },
+      el("div", { class: "seg", role: "radiogroup", "aria-label": "Urteil zu " + f.id },
+        radios.map(r => el("label", { for: r.id }, r, el("span", { text: radioLabels[r.value] })))),
+      note, copyBtn);
+    copyBtn.addEventListener("click", () => copyComment(f, foot, copyBtn));
+
+    const card = el("article", { class: "finding", "data-schwere": f.schwere, id: f.id },
+      el("div", { class: "f-head" },
+        el("label", { class: "check", for: cb.id }, cb, "geprüft"),
+        el("div", { class: "f-title" },
+          el("div", { class: "tags" },
+            el("span", { class: "fid", text: f.id }),
+            el("span", { class: "sev", text: f.schwere }),
+            el("span", { class: "cat", text: (KAT_ICON[f.kategorie] || "") + " " + f.kategorie }),
+            el("span", { class: "verif " + (p.status || ""), text: (p.status === "bestaetigt" ? "bestätigt" : p.status || "ungeprüft") + ((p.durch || []).length ? " · " + p.durch.join(", ") : "") })),
+          el("h3", { text: f.titel }),
+          el("div", { class: "ort", text: f.ort }))),
+      body, foot);
+
+    cb.addEventListener("change", () => { state[f.id].geprueft = cb.checked; sync(f.id); persist(f.id); });
+    radios.forEach(r => r.addEventListener("change", () => { if (r.checked) { state[f.id].urteil = r.value; persist(f.id); } }));
+    let t = null;
+    note.addEventListener("input", () => { state[f.id].notiz = note.value; clearTimeout(t); t = setTimeout(() => persist(f.id), 800); });
+    note.addEventListener("blur", () => { if (t) { clearTimeout(t); t = null; persist(f.id); } });
+
+    nodes[f.id] = { card, cb, radios, note };
+    list$.append(card);
+  });
+
+  function sync(id) {
+    const s = state[id], n = nodes[id];
+    if (!n) return;
+    n.cb.checked = !!s.geprueft;
+    n.radios.forEach(r => { r.checked = r.value === (s.urteil || "offen"); });
+    if (document.activeElement !== n.note) n.note.value = s.notiz || "";
+    n.card.classList.toggle("done", !!s.geprueft);
+    updateProgress(); applyFilter();
+  }
+  function updateProgress() {
+    const total = FINDINGS.length;
+    const done = FINDINGS.filter(f => state[f.id] && state[f.id].geprueft).length;
+    const fa = FINDINGS.filter(f => state[f.id] && state[f.id].urteil === "fehlalarm").length;
+    document.getElementById("progress-text").textContent = done + " von " + total + " geprüft" + (fa ? ", " + fa + " Fehlalarm" : "");
+    document.getElementById("progress-bar").style.width = total ? (100 * done / total) + "%" : "0";
+  }
+
+  // ---------- Filter ----------
+  let filter = "alle";
+  const nurOffen = document.getElementById("nur-offen");
+  function applyFilter() {
+    FINDINGS.forEach(f => {
+      const n = nodes[f.id];
+      n.card.hidden = (filter !== "alle" && f.schwere !== filter) || (nurOffen.checked && state[f.id].geprueft);
+    });
+  }
+  document.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
+    filter = b.dataset.filter;
+    document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    applyFilter();
+  }));
+  nurOffen.addEventListener("change", applyFilter);
+
+  // ---------- Positiv, Verworfen, Abschluss ----------
+  const pos = D.positiv || [];
+  document.getElementById("positiv").append(pos.length
+    ? list(pos.map(p => [p.text, p.ort ? el("span", { class: "ort" }, "  ", p.ort) : null]))
+    : el("p", { class: "empty", text: "Nichts Besonderes vermerkt." }));
+
+  const verw = D.verworfen || [];
+  const vBox = document.getElementById("verworfen");
+  if (verw.length) {
+    vBox.append(el("details", null,
+      el("summary", { text: verw.length + " Kandidaten nach der Gegenprobe aussortiert" }),
+      el("div", { class: "discarded" }, verw.map(v => el("div", null,
+        el("div", null, el("b", { text: v.titel })),
+        el("div", { class: "ort", text: v.ort + (v.quelle ? "  ·  Quelle: " + v.quelle : "") }),
+        el("div", { class: "muted", text: v.grund }))))));
+  } else {
+    vBox.append(el("p", { class: "empty", text: "Keine Kandidaten verworfen." }));
+  }
+
+  const A = D.abschluss || {};
+  const abBox = document.getElementById("abschluss");
+  abBox.append(kv([["Urteil", M.urteil], ["Findings", Object.entries(counts).map(([k, v]) => v + " " + k).join(", ")], ["Verworfen", String(verw.length)]]));
+  if ((A.naechste_schritte || []).length) abBox.append(el("h3", { text: "Nächste Schritte" }), list(A.naechste_schritte));
+
+  // ---------- Start: lokaler Stand, dann gemeinsamer Speicher ----------
+  const local = lsLoad();
+  FINDINGS.forEach(f => { if (local[f.id]) Object.assign(state[f.id], local[f.id]); sync(f.id); });
+  setNote("Prüfstatus nur in diesem Browser gespeichert");
+
+  (async function connect() {
+    const db = window.claude && window.claude.use ? await window.claude.use("db").catch(() => null) : null;
+    if (!db) return;
+    const col = db.collection("pruefung");
+    store = { kind: "db", write: (id, body) => col.doc(id).set(body) };
+    setNote("Prüfstatus wird für alle Betrachter gespeichert");
+    col.onSnapshot(snap => {
+      snap.docs.forEach(d => {
+        if (!state[d.id]) return;
+        const v = d.data() || {};
+        Object.assign(state[d.id], { geprueft: !!v.geprueft, urteil: v.urteil || "offen", notiz: v.notiz || "" });
+        sync(d.id);
+      });
+    }, () => {
+      store = null;
+      setNote("Verbindung zum Speicher verloren. Prüfstatus nur in diesem Browser gespeichert");
+    });
+  })();
+})();
+</script>
