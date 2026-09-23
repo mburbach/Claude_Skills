@@ -24,7 +24,7 @@ Beobachtete Probleme, die der Skill verhindern soll:
 - **Bewusste Entscheidungen sind kein Finding.** Weicht der Code von einer allgemeinen Best Practice ab, aber erkennbar mit Absicht (Kommentar, Doku, einheitlich im ganzen Projekt), dann ist das höchstens eine [Frage].
 - **Den Code kritisieren, nicht die Person.** "Hier wird X nie aufgerufen, weil ..." statt "Du hast vergessen ...".
 - **Fragen statt behaupten, wenn unsicher.** Besonders bei fremdem Code und Fachlogik.
-- **Schreibstil.** Deutsch. Keine Gedankenstriche als Satzzeichen, keine Semikola. Fachliche und technische Abkürzungen bei der ersten Nennung einmal ausschreiben, zum Beispiel "DSGVO (Datenschutz-Grundverordnung)". Gängige Kürzel wie API oder URL ausgenommen.
+- **Schreibstil.** Deutsch, auch in Statusmeldungen während des Laufs. Keine Gedankenstriche als Satzzeichen, keine Semikola. Fachliche und technische Abkürzungen bei der ersten Nennung einmal ausschreiben, zum Beispiel "DSGVO (Datenschutz-Grundverordnung)". Gängige Kürzel wie API oder URL ausgenommen.
 
 ## Schritt 0: Parameter klären
 
@@ -50,7 +50,13 @@ Optional im Aufruf, ohne Rückfrage:
 
 Ohne Ziel lässt sich nur Stil prüfen, keine Korrektheit. Deshalb zuerst verstehen, was die Änderung bewirken soll.
 
-1. **Ticket.** Jira-Key aus Branchname, Commit-Nachrichten oder MR-Titel ziehen (Muster `[A-Z][A-Z0-9]+-\d+`) und über das Atlassian-MCP lesen. Ziel, Akzeptanzkriterien und verlinkte Tickets notieren.
+1. **Ticket.** Jira-Key aus Branchname, Commit-Nachrichten oder MR-Titel ziehen (Muster `[A-Z][A-Z0-9]+-\d+`) und über das Atlassian-MCP lesen. Immer vollständig, nicht nur die Beschreibung:
+   - Beschreibung, Akzeptanzkriterien und verlinkte Tickets,
+   - **alle Kommentare**, denn dort stehen oft spätere Entscheidungen, die die Beschreibung überholen,
+   - **Anhänge und eingebettete Bilder**, besonders Schaubilder zu Abläufen, Architektur oder Oberflächen. Bilder herunterladen und ansehen, nicht nur den Dateinamen notieren,
+   - verlinkte Confluence-Seiten, soweit sie den geänderten Bereich betreffen.
+
+   Widersprechen sich Beschreibung, Kommentare und Schaubilder, gilt der neueste Stand. Der Widerspruch selbst gehört als Hinweis in den Kontext des Berichts. Weicht der Code von einem Schaubild ab, ist das ein Kandidat für ein Finding der Kategorie Architektur oder Korrektheit.
 2. **MR-Beschreibung.** GitLab: `glab mr view <nr>` oder `glab mr view` für den aktuellen Branch. GitHub: `gh pr view`. Ist kein CLI eingerichtet, weitermachen und im Bericht vermerken, dass die Beschreibung fehlte.
 3. **Projektdoku.** README, CLAUDE.md, `docs/` und ADRs (Architecture Decision Records), soweit sie den geänderten Bereich betreffen.
 4. **Umfang.** `git fetch` nur, wenn der Nutzer nichts dagegen hat und der Basis-Branch lokal veraltet wirkt. Dann:
@@ -60,6 +66,7 @@ Ohne Ziel lässt sich nur Stil prüfen, keine Korrektheit. Deshalb zuerst verste
    git log --oneline <basis>..HEAD
    ```
    Anzahl Dateien, hinzugefügte und entfernte Zeilen festhalten. Sie stehen später im Kopf des Berichts.
+5. **Mehrere Repositories.** Eine Story berührt oft mehrere Repositories, etwa Hauptanwendung und Microservices. Liegt das Arbeitsverzeichnis über mehreren Git-Repositories, alle Repositories suchen, in denen der Feature-Branch existiert (`git -C <repo> rev-parse --verify <branch>`), und den Diff für jedes einzeln ermitteln. Der Basis-Branch kann je Repository verschieden sein. Im Bericht erscheinen Umfang und Lauffähigkeit je Repository, und jeder Ort beginnt mit dem Namen des Repositories, zum Beispiel `beihilfeapigateway/src/main/java/.../JwtFilter.java:42`. Besonders auf Brüche zwischen den Repositories achten: ein entfernter Endpunkt, den ein anderes Repository noch aufruft, oder eine Prüfung, die beim Verschieben von einem Dienst in den anderen verloren geht.
 
 Kann das Ziel der Änderung nicht ermittelt werden, das offen im Bericht sagen und Korrektheitsaussagen als [Frage] formulieren, wo sie vom Ziel abhängen.
 
@@ -171,11 +178,14 @@ Den Prompt aus `references/verifier-prompt.md` verwenden. Er ist bewusst neutral
 
 **Codex:** Prompt in eine Datei im Scratchpad schreiben, dann
 ```bash
-timeout 900 codex exec -s read-only --ephemeral -C "<repo>" \
+timeout 900 codex exec -s read-only --ephemeral --skip-git-repo-check \
+  -C "<repo des Findings>" \
   -o "<scratchpad>/codex-F3.md" - < "<scratchpad>/prompt-F3.md" \
   > "<scratchpad>/codex-F3.log" 2>&1
 ```
-immer mit `run_in_background: true`. `-s read-only` ist Pflicht, Codex darf im Repository nichts ändern. Das Ergebnis steht nach dem Ende in der `-o`-Datei, Fehlermeldungen in der `.log`-Datei.
+immer mit `run_in_background: true`. `-s read-only` ist Pflicht, Codex darf im Repository nichts ändern. `-C` zeigt auf das Repository, in dem die markierte Stelle liegt, nicht auf ein Oberverzeichnis mit mehreren Repositories. `--skip-git-repo-check` steht trotzdem immer dabei, damit Codex nicht an der Git-Prüfung scheitert. Betrifft ein Finding mehrere Repositories, nennt der Prompt alle absoluten Pfade. Lesen darf Codex im Modus `read-only` auch außerhalb von `-C`.
+
+**Erfolg nicht am Exit-Code ablesen.** Codex beendet sich auch bei Fehlern wie einem fehlenden Git-Verzeichnis mit Exit-Code 0. Ein Lauf gilt nur als erfolgreich, wenn die `-o`-Datei existiert und eine Zeile `URTEIL:` enthält. Sonst die `.log`-Datei lesen, die Ursache beheben und einmal neu starten. Scheitert auch der zweite Lauf, prüft Sonnet dieses Finding.
 
 **Codex braucht Zeit.** Ein Lauf dauert oft mehrere Minuten, weil Codex selbst im Repository liest. Daraus folgt:
 

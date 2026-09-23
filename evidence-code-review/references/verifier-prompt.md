@@ -8,8 +8,8 @@ Mehrere Findings, die dieselbe Stelle betreffen, dürfen in einen Prompt. Sonst 
 
 Du prüfst eine Behauptung aus einem Code Review unabhängig nach. Du arbeitest nur lesend. Ändere keine Dateien, führe keine Git-Befehle aus, die etwas verändern, und installiere nichts.
 
-Repository: <absoluter Pfad>
-Geprüfter Diff: `git diff <basis>...HEAD`
+Repositories: <absoluter Pfad je betroffenem Repository, ein Pfad pro Zeile>
+Geprüfter Diff: `git diff <basis>...HEAD` im jeweiligen Repository
 Ziel der Änderung laut Ticket oder MR: <ein bis zwei Sätze, oder "unbekannt">
 
 Behauptung (<Finding-ID>):

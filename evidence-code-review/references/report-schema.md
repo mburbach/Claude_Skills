@@ -10,14 +10,20 @@ Alle Texte sind reiner Text, kein HTML und kein Markdown. Das Template setzt sie
 {
   "meta": {
     "titel": "Review LOGA-Austritte",
-    "repo": "beihilfeapiantragservice",
+    "repo": "beihilfe.digital, beihilfeapigateway",
     "branch": "feature/CBD-412-loga-austritte",
     "basis": "develop",
     "datum": "2026-09-23",
     "stufe": "high",
     "ticket": { "key": "CBD-412", "url": "https://.../browse/CBD-412" },
     "mr": { "nr": "187", "url": "https://gitlab.../merge_requests/187" },
-    "umfang": { "dateien": 23, "plus": 766, "minus": 41 },
+    "umfang": {
+      "dateien": 23, "plus": 766, "minus": 41,
+      "repos": [
+        { "repo": "beihilfe.digital", "basis": "origin/master", "dateien": 15, "plus": 512, "minus": 30 },
+        { "repo": "beihilfeapigateway", "basis": "origin/master", "dateien": 8, "plus": 254, "minus": 11 }
+      ]
+    },
     "urteil": "Überarbeiten",
     "zusammenfassung": "Zwei bis vier Sätze."
   },
@@ -33,7 +39,10 @@ Alle Texte sind reiner Text, kein HTML und kein Markdown. Das Template setzt sie
     "fehler": "Entscheidende Zeilen der Fehlermeldung, sonst leer",
     "ursache": "Umgebung oder Code, mit Begründung",
     "schritte": ["Konkreter Schritt, um es lauffähig zu machen"],
-    "testabdeckung": "Welche neuen Klassen von Tests ausgeführt werden und welche nicht"
+    "testabdeckung": "Welche neuen Klassen von Tests ausgeführt werden und welche nicht",
+    "repos": [
+      { "repo": "beihilfeapigateway", "status": "lauffaehig", "befehl": "./mvnw -B verify", "ergebnis": "12 Tests grün", "fehler": "", "ursache": "", "schritte": [] }
+    ]
   },
   "findings": [
     {
@@ -83,3 +92,4 @@ Alle Texte sind reiner Text, kein HTML und kein Markdown. Das Template setzt sie
 - `markiert` enthält absolute Zeilennummern der Datei, nicht Positionen im Auszug.
 - Leere oder unbekannte Felder als leeren String oder leere Liste angeben, nicht weglassen.
 - `ticket`, `mr` dürfen `null` sein.
+- Bei mehreren Repositories: `umfang` enthält die Summe und unter `repos` die Werte je Repository. `lauffaehigkeit` enthält den Gesamtstatus (der schlechteste Einzelstatus) und unter `repos` die Einzelergebnisse. Jeder `ort` und jede `datei` beginnt mit dem Namen des Repositories. Bei nur einem Repository `repos` weglassen oder leer lassen.

@@ -136,6 +136,13 @@ ul.plain { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column
 .status-pill.lauffaehig { background: var(--accent-soft); color: var(--ok); }
 .status-pill.eingeschraenkt { background: var(--sollte-soft); color: var(--sollte); }
 .status-pill.nicht_lauffaehig { background: var(--blocker-soft); color: var(--blocker); }
+.repo-block { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.repo-block h3 { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.table-wrap { overflow-x: auto; }
+table.repos { border-collapse: collapse; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+table.repos th, table.repos td { text-align: left; padding: 5px 16px 5px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.repos th { color: var(--muted); font-weight: 600; }
+table.repos td.num { text-align: right; }
 pre.err { margin: 0; background: var(--sunken); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font-family: var(--mono); font-size: 0.8rem; overflow-x: auto; white-space: pre; }
 
 /* Findings */
@@ -297,6 +304,13 @@ const DATA = /*__REVIEW_DATA__*/null;
   const kontextBox = document.getElementById("kontext");
   kontextBox.append(kv([["Ziel", K.ziel], ["Quellen", (K.quellen || []).join(", ")]]));
   if ((K.hinweise || []).length) kontextBox.append(list(K.hinweise));
+  if ((U.repos || []).length) {
+    kontextBox.append(el("div", { class: "table-wrap" }, el("table", { class: "repos" },
+      el("thead", null, el("tr", null, ["Repository", "Basis", "Dateien", "Zeilen"].map(h => el("th", { text: h })))),
+      el("tbody", null, U.repos.map(r => el("tr", null,
+        el("td", null, el("code", { text: r.repo })), el("td", null, el("code", { text: r.basis || "" })),
+        el("td", { class: "num", text: r.dateien ?? "" }), el("td", { class: "num", text: "+" + (r.plus ?? 0) + " / −" + (r.minus ?? 0) })))))));
+  }
   if (!K.ziel) kontextBox.append(el("p", { class: "empty", text: "Ziel der Änderung konnte nicht ermittelt werden." }));
 
   // ---------- Lauffähigkeit ----------
@@ -308,6 +322,13 @@ const DATA = /*__REVIEW_DATA__*/null;
   );
   if (L.fehler) laufBox.append(el("pre", { class: "err", text: L.fehler }));
   if ((L.schritte || []).length) laufBox.append(el("h3", { text: "So wird es lauffähig" }), el("ol", { class: "plain" }, L.schritte.map(s => el("li", null, s))));
+  (L.repos || []).forEach(r => {
+    laufBox.append(el("div", { class: "repo-block" },
+      el("h3", null, el("code", { text: r.repo }), " ", el("span", { class: "status-pill " + (r.status || ""), text: LAUF_TEXT[r.status] || "Nicht geprüft" })),
+      kv([["Befehl", r.befehl ? el("code", { text: r.befehl }) : ""], ["Ergebnis", r.ergebnis], ["Ursache", r.ursache]]),
+      r.fehler ? el("pre", { class: "err", text: r.fehler }) : null,
+      (r.schritte || []).length ? el("ol", { class: "plain" }, r.schritte.map(s => el("li", null, s))) : null));
+  });
 
   // ---------- Prüfstatus: Speicher ----------
   const state = {};           // id -> {geprueft, urteil, notiz}
