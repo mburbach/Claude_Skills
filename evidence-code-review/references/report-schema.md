@@ -35,10 +35,11 @@ Alle Texte sind reiner Text, kein HTML und kein Markdown. Das Template setzt sie
   "lauffaehigkeit": {
     "status": "lauffaehig | eingeschraenkt | nicht_lauffaehig",
     "befehl": "./mvnw -B verify",
-    "ergebnis": "46 Tests, alle grün, 3 übersprungen",
+    "ergebnis": "46 Tests, alle grün, 3 übersprungen (@Disabled)",
     "fehler": "Entscheidende Zeilen der Fehlermeldung, sonst leer",
     "ursache": "Umgebung oder Code, mit Begründung",
     "schritte": ["Konkreter Schritt, um es lauffähig zu machen"],
+    "umgebung": "Was für den Build gestartet oder gesetzt wurde, zum Beispiel Podman-Socket, DOCKER_HOST, JDK 17",
     "testabdeckung": "Welche neuen Klassen von Tests ausgeführt werden und welche nicht",
     "repos": [
       { "repo": "beihilfeapigateway", "status": "lauffaehig", "befehl": "./mvnw -B verify", "ergebnis": "12 Tests grün", "fehler": "", "ursache": "", "schritte": [] }
@@ -64,7 +65,7 @@ Alle Texte sind reiner Text, kein HTML und kein Markdown. Das Template setzt sie
       "szenario": "Eingabe oder Zustand, dann das falsche Ergebnis.",
       "gegenprobe": "Was geprüft wurde und was dabei herauskam.",
       "pruefung": {
-        "status": "bestaetigt | plausibel",
+        "status": "nachgewiesen | bestaetigt | plausibel",
         "durch": ["selbst", "sonnet", "codex"],
         "notiz": "Abweichende Sicht eines Prüfers, sonst leer"
       },

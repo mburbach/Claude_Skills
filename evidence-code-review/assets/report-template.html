@@ -169,6 +169,7 @@ pre.err { margin: 0; background: var(--sunken); border: 1px solid var(--line); b
 .verif { font-size: 0.8rem; padding: 1px 8px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
 .verif.bestaetigt { color: var(--ok); border-color: currentColor; }
 .verif.plausibel { color: var(--sollte); border-color: currentColor; }
+.verif.nachgewiesen { color: var(--surface); background: var(--ok); border-color: var(--ok); }
 .ort { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); overflow-wrap: anywhere; }
 .f-body { padding: 0 18px 14px; display: flex; flex-direction: column; gap: 14px; }
 .excerpt { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--sunken); }
@@ -318,7 +319,7 @@ const DATA = /*__REVIEW_DATA__*/null;
   const laufBox = document.getElementById("lauf");
   laufBox.append(
     el("div", null, el("span", { class: "status-pill " + (L.status || ""), text: LAUF_TEXT[L.status] || "Nicht geprüft" })),
-    kv([["Befehl", L.befehl ? el("code", { text: L.befehl }) : ""], ["Ergebnis", L.ergebnis], ["Ursache", L.ursache], ["Testabdeckung", L.testabdeckung]])
+    kv([["Befehl", L.befehl ? el("code", { text: L.befehl }) : ""], ["Ergebnis", L.ergebnis], ["Umgebung", L.umgebung], ["Ursache", L.ursache], ["Testabdeckung", L.testabdeckung]])
   );
   if (L.fehler) laufBox.append(el("pre", { class: "err", text: L.fehler }));
   if ((L.schritte || []).length) laufBox.append(el("h3", { text: "So wird es lauffähig" }), el("ol", { class: "plain" }, L.schritte.map(s => el("li", null, s))));
@@ -443,7 +444,7 @@ const DATA = /*__REVIEW_DATA__*/null;
             el("span", { class: "fid", text: f.id }),
             el("span", { class: "sev", text: f.schwere }),
             el("span", { class: "cat", text: (KAT_ICON[f.kategorie] || "") + " " + f.kategorie }),
-            el("span", { class: "verif " + (p.status || ""), text: (p.status === "bestaetigt" ? "bestätigt" : p.status || "ungeprüft") + ((p.durch || []).length ? " · " + p.durch.join(", ") : "") })),
+            el("span", { class: "verif " + (p.status || ""), text: ({ bestaetigt: "bestätigt", nachgewiesen: "nachgewiesen", plausibel: "plausibel" }[p.status] || "ungeprüft") + ((p.durch || []).length ? " · " + p.durch.join(", ") : "") })),
           el("h3", { text: f.titel }),
           el("div", { class: "ort", text: f.ort }))),
       body, foot);

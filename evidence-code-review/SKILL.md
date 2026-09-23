@@ -24,7 +24,7 @@ Beobachtete Probleme, die der Skill verhindern soll:
 - **Bewusste Entscheidungen sind kein Finding.** Weicht der Code von einer allgemeinen Best Practice ab, aber erkennbar mit Absicht (Kommentar, Doku, einheitlich im ganzen Projekt), dann ist das höchstens eine [Frage].
 - **Den Code kritisieren, nicht die Person.** "Hier wird X nie aufgerufen, weil ..." statt "Du hast vergessen ...".
 - **Fragen statt behaupten, wenn unsicher.** Besonders bei fremdem Code und Fachlogik.
-- **Schreibstil.** Deutsch, auch in Statusmeldungen während des Laufs. Keine Gedankenstriche als Satzzeichen, keine Semikola. Fachliche und technische Abkürzungen bei der ersten Nennung einmal ausschreiben, zum Beispiel "DSGVO (Datenschutz-Grundverordnung)". Gängige Kürzel wie API oder URL ausgenommen.
+- **Schreibstil.** Deutsch, auch in Statusmeldungen während des Laufs. Keine Gedankenstriche als Satzzeichen, keine Semikola. Das gilt für **jede** Ausgabe: Statusmeldungen im Chat, Bericht, Kommentarvorschläge. Vor jeder Meldung kurz auf `—`, `–`, ` - ` und `;` prüfen und den Satz umbauen, statt nur das Zeichen zu tauschen. Aus "Ich starte den Socket – das lässt sich rückgängig machen" wird "Ich starte den Socket. Das lässt sich rückgängig machen". Fachliche und technische Abkürzungen bei der ersten Nennung einmal ausschreiben, zum Beispiel "DSGVO (Datenschutz-Grundverordnung)". Gängige Kürzel wie API oder URL ausgenommen.
 
 ## Schritt 0: Parameter klären
 
@@ -85,6 +85,16 @@ Kann das Ziel der Änderung nicht ermittelt werden, das offen im Bericht sagen u
 
 Lange Läufe mit `run_in_background` starten und währenddessen mit Schritt 3 weitermachen. Keine systemweiten Installationen, keine Änderungen an Dateien im Repository, keine Secrets erfinden. Braucht der Build Zugangsdaten oder externe Dienste, nicht improvisieren, sondern als Befund aufnehmen.
 
+**Container-Laufzeit.** Brauchen Tests Docker oder Podman (etwa für Testcontainers), darf der Skill die vorhandene Laufzeit **ohne Rückfrage** starten, zum Beispiel `systemctl --user start podman.socket` oder den Docker-Dienst. Pflicht dabei:
+
+- im Chat ankündigen, was gestartet wird und wie es wieder gestoppt wird,
+- im Bericht unter Lauffähigkeit festhalten, was gestartet wurde, mit welchen Umgebungsvariablen (`DOCKER_HOST`, `TESTCONTAINERS_RYUK_DISABLED` ...), damit jemand anderes den Build und die Findings genauso nachstellen kann,
+- nach den Tests wieder in den Ausgangszustand zurückversetzen und das im Chat bestätigen.
+
+Nicht installiert wird nichts. Fehlt die Laufzeit ganz, ist das ein Hinweis unter "So wird es lauffähig".
+
+**Java- und Laufzeitversionen abgleichen.** `java.version`, `maven.compiler.source/target/release`, die Konfiguration des Compiler-Plugins, das Basis-Image im `Dockerfile` und die JDK-Version in der CI müssen zusammenpassen, auch zwischen den Repositories einer Story. Eine neue Abweichung im Diff ist ein Kandidat, meist als [Frage] zur tatsächlichen Laufzeit in Produktion.
+
 **Ergebnis einordnen** in einen von drei Zuständen:
 
 - `lauffaehig`: Build und Tests grün.
@@ -100,6 +110,17 @@ Bei `eingeschraenkt` und `nicht_lauffaehig` gehört in den Bericht:
 Liegt die Ursache im geänderten Code, ist das zusätzlich ein eigenes Finding, meist [Blocker].
 
 **Tests einordnen.** Grüne Tests sagen nichts über neuen Code. Für jede neue oder wesentlich geänderte Klasse prüfen, ob ein Test sie ausführt. Ist ein Coverage-Werkzeug konfiguriert (JaCoCo, Istanbul, coverage.py), den Bericht dafür nutzen. Sonst per Suche nach Klassen- und Methodennamen in den Testverzeichnissen.
+
+**Deaktivierte Tests suchen.** "Alle Tests grün" stimmt oft nur, weil ein Test abgeschaltet ist. In allen betroffenen Repositories gezielt suchen, nicht nur im Diff:
+
+| Sprache | Muster |
+|---|---|
+| Java | `@Disabled`, `@DisabledIf...`, `@Ignore`, `Assumptions.assume...`, `assumeTrue` |
+| Maven/Gradle | `<skipTests>`, `<skip>true`, `maven.test.skip`, `<excludes>` im Surefire- oder Failsafe-Plugin, `test { exclude ... }`, `-DskipTests` in CI-Dateien |
+| JavaScript/TypeScript | `it.skip`, `describe.skip`, `xit`, `xdescribe`, `test.todo` |
+| Python | `@pytest.mark.skip`, `skipif`, `@unittest.skip` |
+
+Jeder Fund in der Nähe des geänderten Codes wird ein eigenes Finding der Kategorie Tests: welcher Test, seit wann abgeschaltet (`git log -S "@Disabled" -- <datei>`), mit welcher Begründung, und was er abdecken würde. Deckt der abgeschaltete Test genau den Bereich eines anderen Findings ab, beide Findings aufeinander verweisen lassen. Mindestens [Sollte], wenn er im Diff abgeschaltet wurde oder einen Sicherheitsbereich betrifft. Im Ergebnis der Lauffähigkeit die Zahl der übersprungenen Tests immer nennen, auch wenn sie null ist.
 
 ## Schritt 3: Diff lesen, von außen nach innen
 
@@ -150,8 +171,20 @@ Das ist der Kern des Skills. Für jeden Kandidaten:
 4. **Szenario formulieren.** Konkrete Eingabe oder konkreter Zustand, der zum falschen Verhalten führt. Wer keines formulieren kann, hat kein Finding, sondern höchstens eine [Frage].
 5. **Status vergeben:**
    - `bestaetigt`: Code gelesen, Pfad erreichbar, Gegenprobe ohne Treffer, Szenario konkret.
+   - `nachgewiesen`: wie `bestaetigt`, und zusätzlich am laufenden System reproduziert, siehe unten.
    - `plausibel`: Mechanismus stimmt, aber etwas bleibt offen (Laufzeitverhalten, Framework-Semantik, Daten aus Produktion).
    - `verworfen`: Gegenprobe hat eine Absicherung gefunden. Kommt in die Liste der verworfenen Kandidaten, mit Grund in einem Satz. So sieht der Leser, was bewusst aussortiert wurde.
+
+### Nachweis am laufenden System
+
+Hängt ein Finding an Laufzeitverhalten (Security-Filter, Autokonfiguration, HTTP-Status, Serialisierung), ist ein echter Aufruf der stärkste Beleg. Der Skill darf dafür den gebauten Dienst lokal starten, auf einem freien Port und mit der Konfiguration aus dem Repository, und ihn mit `curl` oder einem kleinen Testaufruf ansprechen. Regeln:
+
+- nur lokal, keine Aufrufe gegen fremde oder produktive Systeme,
+- keine Daten schreiben, die über den Test hinaus bestehen bleiben,
+- Befehl, Anfrage und entscheidende Antwortzeilen (Statuscode, Header, Logzeile) kommen ins Feld `gegenprobe`, damit der Leser es nachstellen kann,
+- den Prozess danach beenden und das im Chat bestätigen.
+
+Gelingt der Nachweis, erhält das Finding den Status `nachgewiesen`.
 
 ### Zweitprüfung durch Codex
 
@@ -235,7 +268,7 @@ Jedes Finding enthält:
 - **Warum ist das ein Problem.** Der Mechanismus in zwei bis fünf Sätzen. So erklärt, dass jemand, der den Code nicht kennt, es mit dem Auszug allein nachvollziehen kann.
 - **Szenario.** Konkrete Eingabe oder konkreter Zustand, dann das falsche Ergebnis.
 - **Gegenprobe.** Was geprüft wurde, um einen Fehlalarm auszuschließen, und was dabei herauskam. Zum Beispiel "Einziger Aufrufer `AustrittController:88` reicht den Wert ungeprüft durch, keine Validierung am DTO, kein Test mit leerem Datum."
-- **Prüfstatus** `bestaetigt` oder `plausibel`, und wer geprüft hat (`selbst`, `sonnet`, `codex`).
+- **Prüfstatus** `nachgewiesen`, `bestaetigt` oder `plausibel`, und wer geprüft hat (`selbst`, `sonnet`, `codex`).
 - **Vorschlag**, konkret. Bei Bedarf als kurzer Code-Schnipsel.
 - **Quelle** `eigene Prüfung`, `/code-review` oder beide.
 
