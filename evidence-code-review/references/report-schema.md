@@ -61,6 +61,9 @@ Alle Texte sind reiner Text, kein HTML und kein Markdown. Das Template setzt sie
           "code": "exakter Code ab Zeile 52, Zeilen mit \\n getrennt"
         }
       ],
+      "belege": [
+        { "art": "Ticket | Befehl | Datei | Konfiguration | Doku", "quelle": "CBD-565, Definition of Done", "text": "Wörtliches Zitat oder Ausgabe" }
+      ],
       "warum": "Mechanismus in zwei bis fünf Sätzen.",
       "szenario": "Eingabe oder Zustand, dann das falsche Ergebnis.",
       "gegenprobe": "Was geprüft wurde und was dabei herauskam.",
@@ -90,6 +93,7 @@ Alle Texte sind reiner Text, kein HTML und kein Markdown. Das Template setzt sie
 
 - `id` bleibt über Neuveröffentlichungen stabil. Das Artifact speichert den Prüfstatus unter dieser ID.
 - `findings` ist nach Schweregrad sortiert (Blocker, Sollte, Frage, Nit) und innerhalb davon nach Kategorie-Priorität (Sicherheit, Korrektheit, Tests, Architektur, Wartbarkeit, Stil).
+- Jedes Finding braucht `auszuege` oder `belege`, gern beides. `auszuege` immer dann, wenn sich das Finding am Code erklären lässt. `belege` mit `art` `Befehl` wird als Festbreitentext dargestellt.
 - `markiert` enthält absolute Zeilennummern der Datei, nicht Positionen im Auszug.
 - Leere oder unbekannte Felder als leeren String oder leere Liste angeben, nicht weglassen.
 - `ticket`, `mr` dürfen `null` sein.

@@ -27,9 +27,9 @@ def pruefen(daten):
             fehler.append(f"Finding {fid}: schwere '{f.get('schwere')}' unbekannt")
         if f.get("kategorie") not in KATEGORIEN:
             fehler.append(f"Finding {fid}: kategorie '{f.get('kategorie')}' unbekannt")
-        if not f.get("auszuege"):
-            fehler.append(f"Finding {fid}: kein Code-Auszug")
-        for feld in ("titel", "ort", "warum", "gegenprobe", "vorschlag"):
+        if not f.get("auszuege") and not f.get("belege"):
+            fehler.append(f"Finding {fid}: weder Code-Auszug noch sonstiger Beleg")
+        for feld in ("titel", "warum", "gegenprobe", "vorschlag"):
             if not f.get(feld):
                 fehler.append(f"Finding {fid}: Feld '{feld}' ist leer")
     return fehler

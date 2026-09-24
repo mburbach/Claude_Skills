@@ -59,7 +59,7 @@ Ohne Ziel lässt sich nur Stil prüfen, keine Korrektheit. Deshalb zuerst verste
    Widersprechen sich Beschreibung, Kommentare und Schaubilder, gilt der neueste Stand. Der Widerspruch selbst gehört als Hinweis in den Kontext des Berichts. Weicht der Code von einem Schaubild ab, ist das ein Kandidat für ein Finding der Kategorie Architektur oder Korrektheit.
 2. **MR-Beschreibung.** GitLab: `glab mr view <nr>` oder `glab mr view` für den aktuellen Branch. GitHub: `gh pr view`. Ist kein CLI eingerichtet, weitermachen und im Bericht vermerken, dass die Beschreibung fehlte.
 3. **Projektdoku.** README, CLAUDE.md, `docs/` und ADRs (Architecture Decision Records), soweit sie den geänderten Bereich betreffen.
-4. **Umfang.** `git fetch` nur, wenn der Nutzer nichts dagegen hat und der Basis-Branch lokal veraltet wirkt. Dann:
+4. **Umfang.** `git fetch` ist erlaubt, es ändert nur Remote-Referenzen. Ist der Feature-Branch schon in einen anderen Branch gemergt (etwa `test`), als Basis den Abzweigpunkt nehmen (`git merge-base`), damit genau die Commits der Story im Diff stehen, und das im Kontext des Berichts vermerken. Dann:
    ```bash
    git diff <basis>...HEAD --stat
    git diff <basis>...HEAD --shortstat
@@ -74,7 +74,9 @@ Kann das Ziel der Änderung nicht ermittelt werden, das offen im Bericht sagen u
 
 **Struktur lesen:** Build-Datei (`pom.xml`, `build.gradle`, `package.json`, `pyproject.toml` ...), Konfiguration (`application*.yml`, `.env.example`), Deployment (`Dockerfile`, `docker-compose*.yml`, CI-Datei wie `.gitlab-ci.yml`).
 
-**Bauen und testen.** Den Befehl aus README oder CI übernehmen, nicht raten. Typisch:
+**Bauen und testen.** Den Checkout des Nutzers nicht wechseln. Steht das Repository auf einem anderen Branch, den zu prüfenden Stand ins Scratchpad holen, per `git worktree add <scratchpad>/<repo> <branch>` oder `git archive <branch> | tar -x -C <scratchpad>/<repo>`, und dort bauen. Ein angelegter Worktree wird am Ende mit `git worktree remove` wieder entfernt. Nichts ins lokale Maven-Repository installieren, was der Review nicht braucht (`mvn test` statt `mvn install`, wo das reicht).
+
+Den Befehl aus README oder CI übernehmen, nicht raten. Typisch:
 
 | Build | Befehl |
 |---|---|
@@ -148,7 +150,9 @@ Stil-Findings nur bündeln und knapp halten. Gleichartige Kleinigkeiten werden e
 
 ## Schritt 5: /code-review als zweite Quelle
 
-Nach dem eigenen Durchgang den eingebauten Skill aufrufen:
+**Früh starten, spät lesen.** /code-review braucht den eigenen Durchgang nicht und läuft einige Minuten im Hintergrund. Deshalb starten, sobald Ziel, Basis und Umfang aus Schritt 1 feststehen, also parallel zu Build und Diff-Lektüre. Die Ergebnisse aber erst lesen, wenn der eigene Durchgang aus Schritt 3 und 4 abgeschlossen ist. So bleiben beide Quellen unabhängig, und der eigene Blick wird nicht auf die Kandidaten von /code-review verengt. Die Benachrichtigung über das Ende einfach liegen lassen, bis der eigene Durchgang fertig ist.
+
+Aufruf:
 
 ```
 Skill: code-review
@@ -264,6 +268,10 @@ Jedes Finding enthält:
 - **ID** `F1`, `F2` ... sortiert nach Schweregrad, dann Kategorie-Priorität.
 - **Titel**, ein Satz, der den Mangel benennt, nicht den Bereich. "Austrittsdatum wird bei Zeitzone UTC um einen Tag verschoben", nicht "Datumsbehandlung".
 - **Ort** `pfad/Datei.java:zeile`.
+- **Belege.** Jedes Finding braucht einen Beleg, den der Leser ohne Suche nachvollziehen kann. Welche Art, hängt von der Ursache ab:
+  - Lässt sich das Finding am Code erklären, sind **Code-Auszüge** Pflicht, siehe unten.
+  - Hat es eine andere Ursache, genügen **sonstige Belege** im Feld `belege`: ein Zitat aus dem Ticket (etwa die Definition of Done, die Releasenotes verlangt), die Ausgabe eines Befehls, ein Dateilisting, eine Zeile aus der CI-Konfiguration oder ein Hinweis auf eine Datei, die fehlt. Ein erfundener oder gezwungener Code-Auszug ist schlechter als keiner.
+  - Beides zusammen, wenn es beides gibt.
 - **Code-Auszüge.** Der tatsächliche Code mit Zeilennummern, drei bis fünf Zeilen Kontext davor und danach. Die entscheidenden Zeilen markiert. Wenn das Problem aus dem Zusammenspiel entsteht (Aufrufer ohne Prüfung, Aufgerufener ohne Absicherung), beide Stellen als eigene Auszüge. Aus der Datei kopieren, nie aus dem Gedächtnis rekonstruieren, auch keine Kürzungen mit "...", die die Aussage verändern.
 - **Warum ist das ein Problem.** Der Mechanismus in zwei bis fünf Sätzen. So erklärt, dass jemand, der den Code nicht kennt, es mit dem Auszug allein nachvollziehen kann.
 - **Szenario.** Konkrete Eingabe oder konkreter Zustand, dann das falsche Ergebnis.

@@ -183,6 +183,9 @@ pre.err { margin: 0; background: var(--sunken); border: 1px solid var(--line); b
 .explain { display: grid; grid-template-columns: minmax(120px, max-content) 1fr; gap: 10px 18px; margin: 0; }
 .explain dt { font-weight: 600; font-size: 0.86rem; }
 .explain dd { margin: 0; max-width: 70ch; min-width: 0; overflow-wrap: anywhere; }
+.evidence { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--sunken); }
+.evidence pre.err { border: 0; border-radius: 0; }
+.evidence blockquote { margin: 0; padding: 10px 14px; border-left: 3px solid var(--line); max-width: 75ch; white-space: pre-wrap; overflow-wrap: anywhere; }
 .note-other { font-size: 0.86rem; background: var(--frage-soft); border-radius: 6px; padding: 8px 12px; }
 .f-foot { border-top: 1px solid var(--line); padding: 12px 18px; display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-start; background: var(--ground); border-radius: 0 0 8px 0; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
@@ -376,7 +379,7 @@ const DATA = /*__REVIEW_DATA__*/null;
   }
 
   function commentText(f) {
-    const parts = ["[" + f.schwere + "] " + f.ort, "", f.titel, "", f.warum];
+    const parts = ["[" + f.schwere + "]" + (f.ort ? " " + f.ort : ""), "", f.titel, "", f.warum];
     if (f.szenario) parts.push("", "Szenario: " + f.szenario);
     parts.push("", "Vorschlag: " + f.vorschlag);
     if (f.vorschlag_code) parts.push("", "```", f.vorschlag_code, "```");
@@ -417,6 +420,9 @@ const DATA = /*__REVIEW_DATA__*/null;
 
     const body = el("div", { class: "f-body" },
       (f.auszuege || []).map(a => excerptNode(a)),
+      (f.belege || []).map(b => el("div", { class: "evidence" },
+        el("div", { class: "excerpt-head", text: [b.art, b.quelle].filter(Boolean).join("  ·  ") }),
+        b.art === "Befehl" ? el("pre", { class: "err", text: b.text || "" }) : el("blockquote", { text: b.text || "" }))),
       el("dl", { class: "explain" },
         el("dt", { text: "Warum ist das ein Problem" }), el("dd", { text: f.warum || "" }),
         f.szenario ? [el("dt", { text: "Szenario" }), el("dd", { text: f.szenario })] : null,
@@ -446,7 +452,7 @@ const DATA = /*__REVIEW_DATA__*/null;
             el("span", { class: "cat", text: (KAT_ICON[f.kategorie] || "") + " " + f.kategorie }),
             el("span", { class: "verif " + (p.status || ""), text: ({ bestaetigt: "bestätigt", nachgewiesen: "nachgewiesen", plausibel: "plausibel" }[p.status] || "ungeprüft") + ((p.durch || []).length ? " · " + p.durch.join(", ") : "") })),
           el("h3", { text: f.titel }),
-          el("div", { class: "ort", text: f.ort }))),
+          f.ort ? el("div", { class: "ort", text: f.ort }) : null)),
       body, foot);
 
     cb.addEventListener("change", () => { state[f.id].geprueft = cb.checked; sync(f.id); persist(f.id); });
