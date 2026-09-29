@@ -1,6 +1,6 @@
 # Datenstruktur des Berichts
 
-Eine JSON-Datei, aus der `scripts/build_report.py` die Artifact-Seite erzeugt. Dieselbe Struktur dient als Gliederung für die Terminal-Ausgabe.
+Eine JSON-Datei, aus der `../scripts/build_report.py` die Berichtseite erzeugt. Dieselbe Struktur dient als Gliederung für die Terminal-Ausgabe.
 
 Alle Texte sind reiner Text, kein HTML und kein Markdown. Das Template setzt sie mit `textContent` ein. Code in Auszügen wird exakt so übernommen, wie er in der Datei steht, einschließlich Einrückung.
 

@@ -236,7 +236,7 @@ codex --version && codex login status
 ```
 Schlägt das fehl, steht von Anfang an fest, dass Sonnet einspringt, und es geht keine Zeit mit einem Codex-Aufruf verloren, der ohnehin scheitert.
 
-Den Prompt aus `references/verifier-prompt.md` verwenden. Er ist bewusst neutral formuliert: Der Prüfer bekommt die Behauptung und die Stelle, aber nicht die eigene Einschätzung, und soll aktiv versuchen, das Finding zu widerlegen.
+Den Prompt aus `../../shared/evidence-code-review/references/verifier-prompt.md` verwenden. Er ist bewusst neutral formuliert: Der Prüfer bekommt die Behauptung und die Stelle, aber nicht die eigene Einschätzung, und soll aktiv versuchen, das Finding zu widerlegen.
 
 **Codex:** Prompt in eine Datei im Scratchpad schreiben, dann
 ```bash
@@ -263,7 +263,7 @@ immer mit `run_in_background: true`. `-s read-only` ist Pflicht, Codex darf im R
 ```
 Agent(subagent_type: "general-purpose", model: "sonnet",
       description: "Finding F3 unabhängig prüfen",
-      prompt: <ausgefüllter Prompt aus references/verifier-prompt.md>)
+      prompt: <ausgefüllter Prompt aus ../../shared/evidence-code-review/references/verifier-prompt.md>)
 ```
 Mehrere Sonnet-Prüfungen parallel in einer einzigen Nachricht starten.
 
@@ -305,7 +305,7 @@ Jedes Finding enthält:
 - **Vorschlag**, konkret. Bei Bedarf als kurzer Code-Schnipsel.
 - **Quelle** `eigene Prüfung`, `/code-review` oder beide.
 
-Die Datenstruktur für den Bericht steht in `references/report-schema.md`.
+Die Datenstruktur für den Bericht steht in `../../shared/evidence-code-review/references/report-schema.md`.
 
 **Auch Gutes erwähnen.** Zwei bis fünf konkrete Punkte, was an der Änderung gut gelöst ist, mit Ort. Zum Beispiel datenschutzbewusste Log-Einstellungen, `read_only` im Container, gezielte Tests für einen heiklen Service. Kein Pflichtlob, nur was wirklich auffällt.
 
@@ -348,12 +348,12 @@ Die Zeile mit `>` ist die markierte. Die Sprache im Codeblock passend zur Datei 
 
 ### Artifact
 
-1. Die Findings als JSON nach `references/report-schema.md` in eine Datei im Scratchpad schreiben, zum Beispiel `<scratchpad>/review-<branch>.json`.
+1. Die Findings als JSON nach `../../shared/evidence-code-review/references/report-schema.md` in eine Datei im Scratchpad schreiben, zum Beispiel `<scratchpad>/review-<branch>.json`.
 2. HTML erzeugen:
    ```bash
-   python3 <skill-dir>/scripts/build_report.py <scratchpad>/review-<branch>.json <scratchpad>/review-<branch>.html
+   python3 <skill-dir>/../../shared/evidence-code-review/scripts/build_report.py <scratchpad>/review-<branch>.json <scratchpad>/review-<branch>.html
    ```
-   Das Skript setzt die Daten sicher in `assets/report-template.html` ein. Das Template nicht von Hand anpassen, außer der Nutzer will ein anderes Layout. Das Template nutzt nur Systemschriften und eigenes CSS. Keine Webfonts, kein CSS und keine Skripte aus fremden Quellen einbauen, außer es geht wirklich nicht anders, und dann mit Begründung im Chat.
+   Das Skript setzt die Daten sicher in `../../shared/evidence-code-review/assets/report-template.html` ein. Das Template nicht von Hand anpassen, außer der Nutzer will ein anderes Layout. Das Template nutzt nur Systemschriften und eigenes CSS. Keine Webfonts, kein CSS und keine Skripte aus fremden Quellen einbauen, außer es geht wirklich nicht anders, und dann mit Begründung im Chat.
 3. Veröffentlichen mit dem Artifact-Tool, `capabilities: {db: {}}`, `icon: "review"`, und einer Beschreibung in einem Satz wie "Code Review des Branches feature/loga-austritte gegen develop". Das Template speichert den Prüfstatus in der Collection `pruefung` (ein Dokument je Finding-ID mit `geprueft`, `urteil`, `notiz`). Ohne `db` fällt die Seite auf den Browser-Speicher zurück und sagt das.
 4. Nach dem ersten Veröffentlichen einmal `ArtifactData` mit `list` auf `pruefung` aufrufen, um zu bestätigen, dass die Collection erreichbar ist.
 5. Im Chat nur Link, Gesamturteil und die Zahlen je Schweregrad nennen, nicht den ganzen Bericht wiederholen.
