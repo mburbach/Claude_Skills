@@ -24,7 +24,7 @@ Beobachtete Probleme, die der Skill verhindern soll:
 - **Bewusste Entscheidungen sind kein Finding.** Weicht der Code von einer allgemeinen Best Practice ab, aber erkennbar mit Absicht (Kommentar, Doku, einheitlich im ganzen Projekt), dann ist das höchstens eine [Frage].
 - **Den Code kritisieren, nicht die Person.** "Hier wird X nie aufgerufen, weil ..." statt "Du hast vergessen ...".
 - **Fragen statt behaupten, wenn unsicher.** Besonders bei fremdem Code und Fachlogik.
-- **Schreibstil.** Deutsch. Keine Gedankenstriche als Satzzeichen, keine Semikola. Fachliche und technische Abkürzungen bei der ersten Nennung einmal ausschreiben, zum Beispiel "DSGVO (Datenschutz-Grundverordnung)". Gängige Kürzel wie API oder URL ausgenommen.
+- **Schreibstil.** Deutsch, auch in Statusmeldungen während des Laufs. Keine Gedankenstriche als Satzzeichen, keine Semikola. Das gilt für **jede** Ausgabe: Statusmeldungen im Chat, Bericht, Kommentarvorschläge. Vor jeder Meldung kurz auf `—`, `–`, ` - ` und `;` prüfen und den Satz umbauen, statt nur das Zeichen zu tauschen. Aus "Ich starte den Socket – das lässt sich rückgängig machen" wird "Ich starte den Socket. Das lässt sich rückgängig machen". Fachliche und technische Abkürzungen bei der ersten Nennung einmal ausschreiben, zum Beispiel "DSGVO (Datenschutz-Grundverordnung)". Gängige Kürzel wie API oder URL ausgenommen.
 
 ## Schritt 0: Parameter klären
 
@@ -50,16 +50,23 @@ Optional im Aufruf, ohne Rückfrage:
 
 Ohne Ziel lässt sich nur Stil prüfen, keine Korrektheit. Deshalb zuerst verstehen, was die Änderung bewirken soll.
 
-1. **Ticket.** Jira-Key aus Branchname, Commit-Nachrichten oder MR-Titel ziehen (Muster `[A-Z][A-Z0-9]+-\d+`) und über das Atlassian-MCP lesen. Ziel, Akzeptanzkriterien und verlinkte Tickets notieren.
+1. **Ticket.** Jira-Key aus Branchname, Commit-Nachrichten oder MR-Titel ziehen (Muster `[A-Z][A-Z0-9]+-\d+`) und über das Atlassian-MCP lesen. Immer vollständig, nicht nur die Beschreibung:
+   - Beschreibung, Akzeptanzkriterien und verlinkte Tickets,
+   - **alle Kommentare**, denn dort stehen oft spätere Entscheidungen, die die Beschreibung überholen,
+   - **Anhänge und eingebettete Bilder**, besonders Schaubilder zu Abläufen, Architektur oder Oberflächen. Bilder herunterladen und ansehen, nicht nur den Dateinamen notieren,
+   - verlinkte Confluence-Seiten, soweit sie den geänderten Bereich betreffen.
+
+   Widersprechen sich Beschreibung, Kommentare und Schaubilder, gilt der neueste Stand. Der Widerspruch selbst gehört als Hinweis in den Kontext des Berichts. Weicht der Code von einem Schaubild ab, ist das ein Kandidat für ein Finding der Kategorie Architektur oder Korrektheit.
 2. **MR-Beschreibung.** GitLab: `glab mr view <nr>` oder `glab mr view` für den aktuellen Branch. GitHub: `gh pr view`. Ist kein CLI eingerichtet, weitermachen und im Bericht vermerken, dass die Beschreibung fehlte.
 3. **Projektdoku.** README, CLAUDE.md, `docs/` und ADRs (Architecture Decision Records), soweit sie den geänderten Bereich betreffen.
-4. **Umfang.** `git fetch` nur, wenn der Nutzer nichts dagegen hat und der Basis-Branch lokal veraltet wirkt. Dann:
+4. **Umfang.** `git fetch` ist erlaubt, es ändert nur Remote-Referenzen. Ist der Feature-Branch schon in einen anderen Branch gemergt (etwa `test`), als Basis den Abzweigpunkt nehmen (`git merge-base`), damit genau die Commits der Story im Diff stehen, und das im Kontext des Berichts vermerken. Dann:
    ```bash
    git diff <basis>...HEAD --stat
    git diff <basis>...HEAD --shortstat
    git log --oneline <basis>..HEAD
    ```
    Anzahl Dateien, hinzugefügte und entfernte Zeilen festhalten. Sie stehen später im Kopf des Berichts.
+5. **Mehrere Repositories.** Eine Story berührt oft mehrere Repositories, etwa Hauptanwendung und Microservices. Liegt das Arbeitsverzeichnis über mehreren Git-Repositories, alle Repositories suchen, in denen der Feature-Branch existiert (`git -C <repo> rev-parse --verify <branch>`), und den Diff für jedes einzeln ermitteln. Der Basis-Branch kann je Repository verschieden sein. Im Bericht erscheinen Umfang und Lauffähigkeit je Repository, und jeder Ort beginnt mit dem Namen des Repositories, zum Beispiel `beihilfeapigateway/src/main/java/.../JwtFilter.java:42`. Besonders auf Brüche zwischen den Repositories achten: ein entfernter Endpunkt, den ein anderes Repository noch aufruft, oder eine Prüfung, die beim Verschieben von einem Dienst in den anderen verloren geht.
 
 Kann das Ziel der Änderung nicht ermittelt werden, das offen im Bericht sagen und Korrektheitsaussagen als [Frage] formulieren, wo sie vom Ziel abhängen.
 
@@ -67,7 +74,9 @@ Kann das Ziel der Änderung nicht ermittelt werden, das offen im Bericht sagen u
 
 **Struktur lesen:** Build-Datei (`pom.xml`, `build.gradle`, `package.json`, `pyproject.toml` ...), Konfiguration (`application*.yml`, `.env.example`), Deployment (`Dockerfile`, `docker-compose*.yml`, CI-Datei wie `.gitlab-ci.yml`).
 
-**Bauen und testen.** Den Befehl aus README oder CI übernehmen, nicht raten. Typisch:
+**Bauen und testen.** Den Checkout des Nutzers nicht wechseln. Steht das Repository auf einem anderen Branch, den zu prüfenden Stand ins Scratchpad holen, per `git worktree add <scratchpad>/<repo> <branch>` oder `git archive <branch> | tar -x -C <scratchpad>/<repo>`, und dort bauen. Ein angelegter Worktree wird am Ende mit `git worktree remove` wieder entfernt. Nichts ins lokale Maven-Repository installieren, was der Review nicht braucht (`mvn test` statt `mvn install`, wo das reicht).
+
+Den Befehl aus README oder CI übernehmen, nicht raten. Typisch:
 
 | Build | Befehl |
 |---|---|
@@ -77,6 +86,16 @@ Kann das Ziel der Änderung nicht ermittelt werden, das offen im Bericht sagen u
 | Python | `pytest` im vorhandenen venv |
 
 Lange Läufe mit `run_in_background` starten und währenddessen mit Schritt 3 weitermachen. Keine systemweiten Installationen, keine Änderungen an Dateien im Repository, keine Secrets erfinden. Braucht der Build Zugangsdaten oder externe Dienste, nicht improvisieren, sondern als Befund aufnehmen.
+
+**Container-Laufzeit.** Brauchen Tests Docker oder Podman (etwa für Testcontainers), darf der Skill die vorhandene Laufzeit **ohne Rückfrage** starten, zum Beispiel `systemctl --user start podman.socket` oder den Docker-Dienst. Pflicht dabei:
+
+- im Chat ankündigen, was gestartet wird und wie es wieder gestoppt wird,
+- im Bericht unter Lauffähigkeit festhalten, was gestartet wurde, mit welchen Umgebungsvariablen (`DOCKER_HOST`, `TESTCONTAINERS_RYUK_DISABLED` ...), damit jemand anderes den Build und die Findings genauso nachstellen kann,
+- nach den Tests wieder in den Ausgangszustand zurückversetzen und das im Chat bestätigen.
+
+Nicht installiert wird nichts. Fehlt die Laufzeit ganz, ist das ein Hinweis unter "So wird es lauffähig".
+
+**Java- und Laufzeitversionen abgleichen.** `java.version`, `maven.compiler.source/target/release`, die Konfiguration des Compiler-Plugins, das Basis-Image im `Dockerfile` und die JDK-Version in der CI müssen zusammenpassen, auch zwischen den Repositories einer Story. Eine neue Abweichung im Diff ist ein Kandidat, meist als [Frage] zur tatsächlichen Laufzeit in Produktion.
 
 **Ergebnis einordnen** in einen von drei Zuständen:
 
@@ -93,6 +112,17 @@ Bei `eingeschraenkt` und `nicht_lauffaehig` gehört in den Bericht:
 Liegt die Ursache im geänderten Code, ist das zusätzlich ein eigenes Finding, meist [Blocker].
 
 **Tests einordnen.** Grüne Tests sagen nichts über neuen Code. Für jede neue oder wesentlich geänderte Klasse prüfen, ob ein Test sie ausführt. Ist ein Coverage-Werkzeug konfiguriert (JaCoCo, Istanbul, coverage.py), den Bericht dafür nutzen. Sonst per Suche nach Klassen- und Methodennamen in den Testverzeichnissen.
+
+**Deaktivierte Tests suchen.** "Alle Tests grün" stimmt oft nur, weil ein Test abgeschaltet ist. In allen betroffenen Repositories gezielt suchen, nicht nur im Diff:
+
+| Sprache | Muster |
+|---|---|
+| Java | `@Disabled`, `@DisabledIf...`, `@Ignore`, `Assumptions.assume...`, `assumeTrue` |
+| Maven/Gradle | `<skipTests>`, `<skip>true`, `maven.test.skip`, `<excludes>` im Surefire- oder Failsafe-Plugin, `test { exclude ... }`, `-DskipTests` in CI-Dateien |
+| JavaScript/TypeScript | `it.skip`, `describe.skip`, `xit`, `xdescribe`, `test.todo` |
+| Python | `@pytest.mark.skip`, `skipif`, `@unittest.skip` |
+
+Jeder Fund in der Nähe des geänderten Codes wird ein eigenes Finding der Kategorie Tests: welcher Test, seit wann abgeschaltet (`git log -S "@Disabled" -- <datei>`), mit welcher Begründung, und was er abdecken würde. Deckt der abgeschaltete Test genau den Bereich eines anderen Findings ab, beide Findings aufeinander verweisen lassen. Mindestens [Sollte], wenn er im Diff abgeschaltet wurde oder einen Sicherheitsbereich betrifft. Im Ergebnis der Lauffähigkeit die Zahl der übersprungenen Tests immer nennen, auch wenn sie null ist.
 
 ## Schritt 3: Diff lesen, von außen nach innen
 
@@ -113,14 +143,41 @@ Beim Lesen die Checkliste aus Schritt 4 anwenden und Kandidaten sofort mit Datei
 | 🔴 | Korrektheit | Tut der Code, was er soll? Randfälle, `null`, Fehlerpfade, Nebenläufigkeit? |
 | 🟠 | Tests | Ist die neue Logik getestet? Würden die Tests einen Fehler finden? |
 | 🟠 | Architektur | Passt es zum bestehenden Design? Widerspricht es der Doku? |
-| 🟡 | Wartbarkeit | Toter Code, Hardcoding, Duplikate, Namen |
-| ⚪ | Stil | Tippfehler, Formatierung. Das sollte ein Linter übernehmen, kein Mensch |
+| 🟡 | Wartbarkeit | Toter Code, Hardcoding, Duplikate |
+| ⚪ | Stil | Tippfehler, Formatierung, Methodennamen. Tippfehler und Formatierung sollte ein Linter übernehmen, kein Mensch. Methodennamen siehe unten |
 
 Stil-Findings nur bündeln und knapp halten. Gleichartige Kleinigkeiten werden ein einziges [Nit] mit allen Fundstellen.
 
+### Stil: Benennung von Methoden
+
+Methodennamen gehören zur Kategorie Stil. Anders als Tippfehler und Formatierung erkennt ein Linter hier nur die Konvention, nicht ob der Name zum Verhalten passt. Deshalb wird die Benennung trotzdem von Hand geprüft.
+
+Jede neue oder umbenannte Methode im Diff wird geprüft. Zwei Fragen:
+
+1. **Konvention der Sprache.** Der Name folgt den üblichen Regeln der jeweiligen Sprache und des Projekts. Beispiele:
+   - Java, Kotlin, JavaScript, TypeScript: `lowerCamelCase`, Verb am Anfang (`calculateTotal`, `sendInvoice`). Boolesche Abfragen mit `is`, `has`, `can` (`isExpired`). Getter und Setter nach JavaBeans (`getName`, `setName`).
+   - C#: `PascalCase` (`CalculateTotal`), asynchrone Methoden mit Endung `Async`.
+   - Python: `snake_case` nach PEP 8 (`calculate_total`), interne Methoden mit führendem Unterstrich.
+   - Go: `MixedCaps`, großer Anfangsbuchstabe nur für Exportiertes, Getter ohne `Get` (`Owner()` statt `GetOwner()`).
+   - Rust: `snake_case`, Umwandlungen nach `as_`, `to_`, `into_`.
+   
+   Weicht das Projekt bewusst und einheitlich von der Sprachkonvention ab, gilt die Projektkonvention. Das vorher an benachbartem Code prüfen.
+2. **Name passt zum Verhalten.** Den Rumpf lesen und mit dem Namen vergleichen. Typische Mängel:
+   - der Name verschweigt eine Nebenwirkung, etwa `getUser`, das einen Datensatz anlegt, oder `validate`, das Daten korrigiert und speichert,
+   - der Name verspricht etwas anderes, als die Methode tut, etwa `isValid`, das eine Exception wirft statt `false` zu liefern,
+   - der Name ist zu allgemein, etwa `process`, `handle`, `doIt`, `manage`, `helper`,
+   - die Methode tut mehrere Dinge, und der Name nennt nur eins (`saveAndNotify` versteckt hinter `save`),
+   - der Name ist nach einer Änderung veraltet und beschreibt das frühere Verhalten.
+
+**Schweregrad.** Ein reiner Verstoß gegen die Namenskonvention ist ein [Nit], gleichartige Verstöße gebündelt. Ein irreführender Name, der eine Nebenwirkung verschweigt oder Gegenteiliges verspricht, ist ein [Sollte], weil Aufrufer sich auf den Namen verlassen und dadurch Fehler entstehen. Das Szenario aus Schritt 6 ist dann der konkrete Aufruf, bei dem ein Entwickler dem Namen vertraut und sich falsch verhält. Jedes Finding zur Benennung erhält die Kategorie Stil und enthält einen konkreten Namensvorschlag.
+
+Verifikation wie bei jedem Finding: Erst den Rumpf und die Aufrufer lesen. Ein Name, der nur ungewohnt wirkt, aber das Verhalten korrekt beschreibt, ist kein Finding. Methoden, deren Name durch ein Framework oder eine Schnittstelle vorgegeben ist (überschriebene Methoden, `@Override`, Lifecycle-Methoden, generierter Code), sind ausgenommen.
+
 ## Schritt 5: /code-review als zweite Quelle
 
-Nach dem eigenen Durchgang den eingebauten Skill aufrufen:
+**Früh starten, spät lesen.** /code-review braucht den eigenen Durchgang nicht und läuft einige Minuten im Hintergrund. Deshalb starten, sobald Ziel, Basis und Umfang aus Schritt 1 feststehen, also parallel zu Build und Diff-Lektüre. Die Ergebnisse aber erst lesen, wenn der eigene Durchgang aus Schritt 3 und 4 abgeschlossen ist. So bleiben beide Quellen unabhängig, und der eigene Blick wird nicht auf die Kandidaten von /code-review verengt. Die Benachrichtigung über das Ende einfach liegen lassen, bis der eigene Durchgang fertig ist.
+
+Aufruf:
 
 ```
 Skill: code-review
@@ -143,8 +200,20 @@ Das ist der Kern des Skills. Für jeden Kandidaten:
 4. **Szenario formulieren.** Konkrete Eingabe oder konkreter Zustand, der zum falschen Verhalten führt. Wer keines formulieren kann, hat kein Finding, sondern höchstens eine [Frage].
 5. **Status vergeben:**
    - `bestaetigt`: Code gelesen, Pfad erreichbar, Gegenprobe ohne Treffer, Szenario konkret.
+   - `nachgewiesen`: wie `bestaetigt`, und zusätzlich am laufenden System reproduziert, siehe unten.
    - `plausibel`: Mechanismus stimmt, aber etwas bleibt offen (Laufzeitverhalten, Framework-Semantik, Daten aus Produktion).
    - `verworfen`: Gegenprobe hat eine Absicherung gefunden. Kommt in die Liste der verworfenen Kandidaten, mit Grund in einem Satz. So sieht der Leser, was bewusst aussortiert wurde.
+
+### Nachweis am laufenden System
+
+Hängt ein Finding an Laufzeitverhalten (Security-Filter, Autokonfiguration, HTTP-Status, Serialisierung), ist ein echter Aufruf der stärkste Beleg. Der Skill darf dafür den gebauten Dienst lokal starten, auf einem freien Port und mit der Konfiguration aus dem Repository, und ihn mit `curl` oder einem kleinen Testaufruf ansprechen. Regeln:
+
+- nur lokal, keine Aufrufe gegen fremde oder produktive Systeme,
+- keine Daten schreiben, die über den Test hinaus bestehen bleiben,
+- Befehl, Anfrage und entscheidende Antwortzeilen (Statuscode, Header, Logzeile) kommen ins Feld `gegenprobe`, damit der Leser es nachstellen kann,
+- den Prozess danach beenden und das im Chat bestätigen.
+
+Gelingt der Nachweis, erhält das Finding den Status `nachgewiesen`.
 
 ### Zweitprüfung durch Codex
 
@@ -171,11 +240,14 @@ Den Prompt aus `references/verifier-prompt.md` verwenden. Er ist bewusst neutral
 
 **Codex:** Prompt in eine Datei im Scratchpad schreiben, dann
 ```bash
-timeout 900 codex exec -s read-only --ephemeral -C "<repo>" \
+timeout 900 codex exec -s read-only --ephemeral --skip-git-repo-check \
+  -C "<repo des Findings>" \
   -o "<scratchpad>/codex-F3.md" - < "<scratchpad>/prompt-F3.md" \
   > "<scratchpad>/codex-F3.log" 2>&1
 ```
-immer mit `run_in_background: true`. `-s read-only` ist Pflicht, Codex darf im Repository nichts ändern. Das Ergebnis steht nach dem Ende in der `-o`-Datei, Fehlermeldungen in der `.log`-Datei.
+immer mit `run_in_background: true`. `-s read-only` ist Pflicht, Codex darf im Repository nichts ändern. `-C` zeigt auf das Repository, in dem die markierte Stelle liegt, nicht auf ein Oberverzeichnis mit mehreren Repositories. `--skip-git-repo-check` steht trotzdem immer dabei, damit Codex nicht an der Git-Prüfung scheitert. Betrifft ein Finding mehrere Repositories, nennt der Prompt alle absoluten Pfade. Lesen darf Codex im Modus `read-only` auch außerhalb von `-C`.
+
+**Erfolg nicht am Exit-Code ablesen.** Codex beendet sich auch bei Fehlern wie einem fehlenden Git-Verzeichnis mit Exit-Code 0. Ein Lauf gilt nur als erfolgreich, wenn die `-o`-Datei existiert und eine Zeile `URTEIL:` enthält. Sonst die `.log`-Datei lesen, die Ursache beheben und einmal neu starten. Scheitert auch der zweite Lauf, prüft Sonnet dieses Finding.
 
 **Codex braucht Zeit.** Ein Lauf dauert oft mehrere Minuten, weil Codex selbst im Repository liest. Daraus folgt:
 
@@ -212,8 +284,8 @@ Sagt der Nutzer nach dem Bericht "prüf F3 nochmal" (dann Codex), "prüf F3 mit 
 | Marke | Bedeutung |
 |---|---|
 | [Blocker] | Muss vor dem Merge behoben werden. Falsches Verhalten, Sicherheitslücke, Datenverlust, Build kaputt |
-| [Sollte] | Sollte behoben werden, blockiert aber nicht. Fehlende Tests für neue Logik, Architekturbruch, riskantes Hardcoding |
-| [Nit] | Kleinigkeit. Namen, toter Code, Stil |
+| [Sollte] | Sollte behoben werden, blockiert aber nicht. Fehlende Tests für neue Logik, Architekturbruch, riskantes Hardcoding, irreführende Methodennamen |
+| [Nit] | Kleinigkeit. Verstöße gegen Namenskonventionen, toter Code, Stil |
 | [Frage] | Unklar, ob es ein Problem ist. Wird als Frage an den Autor formuliert |
 
 Jedes Finding enthält:
@@ -221,11 +293,15 @@ Jedes Finding enthält:
 - **ID** `F1`, `F2` ... sortiert nach Schweregrad, dann Kategorie-Priorität.
 - **Titel**, ein Satz, der den Mangel benennt, nicht den Bereich. "Austrittsdatum wird bei Zeitzone UTC um einen Tag verschoben", nicht "Datumsbehandlung".
 - **Ort** `pfad/Datei.java:zeile`.
+- **Belege.** Jedes Finding braucht einen Beleg, den der Leser ohne Suche nachvollziehen kann. Welche Art, hängt von der Ursache ab:
+  - Lässt sich das Finding am Code erklären, sind **Code-Auszüge** Pflicht, siehe unten.
+  - Hat es eine andere Ursache, genügen **sonstige Belege** im Feld `belege`: ein Zitat aus dem Ticket (etwa die Definition of Done, die Releasenotes verlangt), die Ausgabe eines Befehls, ein Dateilisting, eine Zeile aus der CI-Konfiguration oder ein Hinweis auf eine Datei, die fehlt. Ein erfundener oder gezwungener Code-Auszug ist schlechter als keiner.
+  - Beides zusammen, wenn es beides gibt.
 - **Code-Auszüge.** Der tatsächliche Code mit Zeilennummern, drei bis fünf Zeilen Kontext davor und danach. Die entscheidenden Zeilen markiert. Wenn das Problem aus dem Zusammenspiel entsteht (Aufrufer ohne Prüfung, Aufgerufener ohne Absicherung), beide Stellen als eigene Auszüge. Aus der Datei kopieren, nie aus dem Gedächtnis rekonstruieren, auch keine Kürzungen mit "...", die die Aussage verändern.
 - **Warum ist das ein Problem.** Der Mechanismus in zwei bis fünf Sätzen. So erklärt, dass jemand, der den Code nicht kennt, es mit dem Auszug allein nachvollziehen kann.
 - **Szenario.** Konkrete Eingabe oder konkreter Zustand, dann das falsche Ergebnis.
 - **Gegenprobe.** Was geprüft wurde, um einen Fehlalarm auszuschließen, und was dabei herauskam. Zum Beispiel "Einziger Aufrufer `AustrittController:88` reicht den Wert ungeprüft durch, keine Validierung am DTO, kein Test mit leerem Datum."
-- **Prüfstatus** `bestaetigt` oder `plausibel`, und wer geprüft hat (`selbst`, `sonnet`, `codex`).
+- **Prüfstatus** `nachgewiesen`, `bestaetigt` oder `plausibel`, und wer geprüft hat (`selbst`, `sonnet`, `codex`).
 - **Vorschlag**, konkret. Bei Bedarf als kurzer Code-Schnipsel.
 - **Quelle** `eigene Prüfung`, `/code-review` oder beide.
 
