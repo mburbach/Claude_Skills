@@ -143,10 +143,35 @@ Beim Lesen die Checkliste aus Schritt 4 anwenden und Kandidaten sofort mit Datei
 | 🔴 | Korrektheit | Tut der Code, was er soll? Randfälle, `null`, Fehlerpfade, Nebenläufigkeit? |
 | 🟠 | Tests | Ist die neue Logik getestet? Würden die Tests einen Fehler finden? |
 | 🟠 | Architektur | Passt es zum bestehenden Design? Widerspricht es der Doku? |
-| 🟡 | Wartbarkeit | Toter Code, Hardcoding, Duplikate, Namen |
-| ⚪ | Stil | Tippfehler, Formatierung. Das sollte ein Linter übernehmen, kein Mensch |
+| 🟡 | Wartbarkeit | Toter Code, Hardcoding, Duplikate |
+| ⚪ | Stil | Tippfehler, Formatierung, Methodennamen. Tippfehler und Formatierung sollte ein Linter übernehmen, kein Mensch. Methodennamen siehe unten |
 
 Stil-Findings nur bündeln und knapp halten. Gleichartige Kleinigkeiten werden ein einziges [Nit] mit allen Fundstellen.
+
+### Stil: Benennung von Methoden
+
+Methodennamen gehören zur Kategorie Stil. Anders als Tippfehler und Formatierung erkennt ein Linter hier nur die Konvention, nicht ob der Name zum Verhalten passt. Deshalb wird die Benennung trotzdem von Hand geprüft.
+
+Jede neue oder umbenannte Methode im Diff wird geprüft. Zwei Fragen:
+
+1. **Konvention der Sprache.** Der Name folgt den üblichen Regeln der jeweiligen Sprache und des Projekts. Beispiele:
+   - Java, Kotlin, JavaScript, TypeScript: `lowerCamelCase`, Verb am Anfang (`calculateTotal`, `sendInvoice`). Boolesche Abfragen mit `is`, `has`, `can` (`isExpired`). Getter und Setter nach JavaBeans (`getName`, `setName`).
+   - C#: `PascalCase` (`CalculateTotal`), asynchrone Methoden mit Endung `Async`.
+   - Python: `snake_case` nach PEP 8 (`calculate_total`), interne Methoden mit führendem Unterstrich.
+   - Go: `MixedCaps`, großer Anfangsbuchstabe nur für Exportiertes, Getter ohne `Get` (`Owner()` statt `GetOwner()`).
+   - Rust: `snake_case`, Umwandlungen nach `as_`, `to_`, `into_`.
+   
+   Weicht das Projekt bewusst und einheitlich von der Sprachkonvention ab, gilt die Projektkonvention. Das vorher an benachbartem Code prüfen.
+2. **Name passt zum Verhalten.** Den Rumpf lesen und mit dem Namen vergleichen. Typische Mängel:
+   - der Name verschweigt eine Nebenwirkung, etwa `getUser`, das einen Datensatz anlegt, oder `validate`, das Daten korrigiert und speichert,
+   - der Name verspricht etwas anderes, als die Methode tut, etwa `isValid`, das eine Exception wirft statt `false` zu liefern,
+   - der Name ist zu allgemein, etwa `process`, `handle`, `doIt`, `manage`, `helper`,
+   - die Methode tut mehrere Dinge, und der Name nennt nur eins (`saveAndNotify` versteckt hinter `save`),
+   - der Name ist nach einer Änderung veraltet und beschreibt das frühere Verhalten.
+
+**Schweregrad.** Ein reiner Verstoß gegen die Namenskonvention ist ein [Nit], gleichartige Verstöße gebündelt. Ein irreführender Name, der eine Nebenwirkung verschweigt oder Gegenteiliges verspricht, ist ein [Sollte], weil Aufrufer sich auf den Namen verlassen und dadurch Fehler entstehen. Das Szenario aus Schritt 6 ist dann der konkrete Aufruf, bei dem ein Entwickler dem Namen vertraut und sich falsch verhält. Jedes Finding zur Benennung erhält die Kategorie Stil und enthält einen konkreten Namensvorschlag.
+
+Verifikation wie bei jedem Finding: Erst den Rumpf und die Aufrufer lesen. Ein Name, der nur ungewohnt wirkt, aber das Verhalten korrekt beschreibt, ist kein Finding. Methoden, deren Name durch ein Framework oder eine Schnittstelle vorgegeben ist (überschriebene Methoden, `@Override`, Lifecycle-Methoden, generierter Code), sind ausgenommen.
 
 ## Schritt 5: /code-review als zweite Quelle
 
@@ -259,8 +284,8 @@ Sagt der Nutzer nach dem Bericht "prüf F3 nochmal" (dann Codex), "prüf F3 mit 
 | Marke | Bedeutung |
 |---|---|
 | [Blocker] | Muss vor dem Merge behoben werden. Falsches Verhalten, Sicherheitslücke, Datenverlust, Build kaputt |
-| [Sollte] | Sollte behoben werden, blockiert aber nicht. Fehlende Tests für neue Logik, Architekturbruch, riskantes Hardcoding |
-| [Nit] | Kleinigkeit. Namen, toter Code, Stil |
+| [Sollte] | Sollte behoben werden, blockiert aber nicht. Fehlende Tests für neue Logik, Architekturbruch, riskantes Hardcoding, irreführende Methodennamen |
+| [Nit] | Kleinigkeit. Verstöße gegen Namenskonventionen, toter Code, Stil |
 | [Frage] | Unklar, ob es ein Problem ist. Wird als Frage an den Autor formuliert |
 
 Jedes Finding enthält:
