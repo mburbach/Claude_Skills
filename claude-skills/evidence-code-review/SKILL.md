@@ -173,6 +173,12 @@ Jede neue oder umbenannte Methode im Diff wird geprüft. Zwei Fragen:
 
 Verifikation wie bei jedem Finding: Erst den Rumpf und die Aufrufer lesen. Ein Name, der nur ungewohnt wirkt, aber das Verhalten korrekt beschreibt, ist kein Finding. Methoden, deren Name durch ein Framework oder eine Schnittstelle vorgegeben ist (überschriebene Methoden, `@Override`, Lifecycle-Methoden, generierter Code), sind ausgenommen.
 
+### Wartbarkeit: Überladung mit Lambda-Parametern
+
+Neue oder geänderte Überladungen prüfen, die an derselben Parameterposition verschiedene funktionale Interfaces erwarten, etwa `inTransaction(SessionWork<T>)` neben `inTransaction(SessionAction)`. Ein Lambda ohne Typangabe ist dann beim Aufrufer mehrdeutig, sobald sein Rumpf ein einzelner Ausdruck ist (`session -> session.persist(x)`) oder nur mit `throw` endet. Der Aufrufer muss auf Klammern oder ein künstliches `return null` ausweichen, und ein späterer Umbau zum Einzeiler kompiliert nicht mehr (Effective Java, Item 52; `javac -Xlint:overloads` warnt).
+
+**Schweregrad.** [Sollte], Kategorie Wartbarkeit. Vorschlag: die Varianten verschieden benennen, etwa `inTransaction` für den Wert und `runInTransaction` für void. Verifikation: einen Einzeiler-Aufruf gegen beide Überladungen kompilieren. Meldet javac „Referenz ist mehrdeutig“, ist das Finding belegt. Unterscheiden sich die Interfaces in der Parameterzahl, ist es kein Finding.
+
 ## Schritt 5: /code-review als zweite Quelle
 
 **Früh starten, spät lesen.** /code-review braucht den eigenen Durchgang nicht und läuft einige Minuten im Hintergrund. Deshalb starten, sobald Ziel, Basis und Umfang aus Schritt 1 feststehen, also parallel zu Build und Diff-Lektüre. Die Ergebnisse aber erst lesen, wenn der eigene Durchgang aus Schritt 3 und 4 abgeschlossen ist. So bleiben beide Quellen unabhängig, und der eigene Blick wird nicht auf die Kandidaten von /code-review verengt. Die Benachrichtigung über das Ende einfach liegen lassen, bis der eigene Durchgang fertig ist.
