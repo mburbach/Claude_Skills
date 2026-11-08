@@ -1,6 +1,6 @@
 ---
 name: subagent-model-choice
-description: Choose the right model (Haiku, Sonnet or Opus) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this at the start of every coding, fix or research task, before writing code or changing files yourself, since working as orchestrator is the default. Also use it whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, delegate research or read-only analysis of servers and infrastructure, act as orchestrator for a story or ticket, are about to start multi-step implementation work yourself (refactoring, cleanup, dead code removal, many similar edits), or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
+description: Choose the right model (Haiku, Sonnet, Opus or, after asking the user, Fable) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this at the start of every coding, fix or research task, before writing code or changing files yourself, since working as orchestrator is the default. Also use it whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, delegate research or read-only analysis of servers and infrastructure, act as orchestrator for a story or ticket, are about to start multi-step implementation work yourself (refactoring, cleanup, dead code removal, many similar edits), or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
 ---
 
 # Subagent Model Choice
@@ -64,6 +64,14 @@ Ask these for every delegated piece of work. The answers decide the model.
 - Trade-offs, architecture, unclear bug hunts, anything where a wrong decision is expensive.
 - Prefer doing this yourself as orchestrator or presenting it to the user with a recommendation. Delegate to Opus only for well-bounded deep work such as an independent analysis.
 
+**Fable** (`model: "fable"`, included in the user's subscription)
+- **Only after asking the user.** Before every Fable call, say why Fable and not Opus, what the agent gets and roughly how long it will run, then wait for a yes. This rule holds until the user loosens it. Save a lesson after every Fable run (see Lessons), so the user can later decide on experience.
+- **Independent second opinion where a mistake is expensive** (question 5: migrations, security, architecture). Fable checks a proposal from the orchestrator or from Sonnet with fresh context before it is applied. A verifier with fresh context finds more than the author's self-check.
+- **Bug hunt where the orchestrator is stuck.** The bug is unclear and two attempts with Opus or Sonnet failed. Fable gets the findings so far and may search the git history.
+- Per Anthropic's docs the most capable model, at 2.5 times the token price of Opus. Single runs on hard tasks often take many minutes, so check the prompt cache (see below). Lower effort is often enough.
+- **Brief for Fable:** state goal, context and boundaries, not a step list. Over-prescriptive briefs make its results worse, the opposite of Haiku. Name explicitly what it must not do, since it sometimes takes adjacent actions nobody asked for.
+- Not for implementation, green steps, refactors or mechanical work. The TDD pipeline with Haiku and Sonnet is cheaper there and easy to check.
+
 **Agent type.** `model` works with every agent type, the type decides the tools. Read-only search and research in the codebase: `Explore` (no write tools, so the read-only boundary is technical, not just a request). It locates code and reads excerpts, for a full summary or review of a file use `general-purpose`. Changes: `general-purpose`. `Explore` still has Bash, so on a live system it is not read-only by itself.
 
 **Effort.** The Agent tool also takes `effort`. Use `lower` for mechanical, self-checking briefs, `higher` for a well-specified piece that needs more reasoning. Sonnet with lower effort and Haiku can both be valid. If unsure, prefer Haiku with a sharper brief.
@@ -105,7 +113,7 @@ Use this when a task is split across several subagents.
 
 **3. Green: implement per slice.** Choose the model per slice with the decision questions. Typically Haiku with a full brief. Verify after each slice: build and all tests green, diff matches the brief, tests unchanged.
 
-**4. Escalate on failure.** If a slice fails twice on the same point, sharpen the brief once or move up one model. Note in a sentence why it failed, this feeds the lessons (see below).
+**4. Escalate on failure.** If a slice fails twice on the same point, sharpen the brief once or move up one model. Fable is the last step and needs the user's yes. Note in a sentence why it failed, this feeds the lessons (see below).
 
 **5. Code review.** When all slices are green, run the review skill the project prescribes (for example `/evidence-code-review`). Confirmed blockers that are bugs are fixed now, by the model that fits the fix.
 
