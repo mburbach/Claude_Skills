@@ -1,6 +1,6 @@
 ---
 name: subagent-model-choice
-description: Choose the right model (Haiku, Sonnet or Opus) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, delegate research or read-only analysis of servers and infrastructure, act as orchestrator for a story or ticket, or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
+description: Choose the right model (Haiku, Sonnet or Opus) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, delegate research or read-only analysis of servers and infrastructure, act as orchestrator for a story or ticket, are about to start multi-step implementation work yourself (refactoring, cleanup, dead code removal, many similar edits), or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
 ---
 
 # Subagent Model Choice
@@ -14,6 +14,7 @@ Failure modes this skill exists to prevent, all observed in practice:
 1. **Sonnet or Opus by reflex.** The question "can Haiku do this alone?" is the wrong one. The right question is "can Haiku do this with my brief, and will I notice if it fails?" When the orchestrator has cut the task, named files and fixed the tests, what remains is often plain implementation.
 2. **Haiku code that works but is not clean.** Long methods, duplication, vague names, ignored project conventions. Tests are green, the code still needs work.
 3. **Refactoring too early.** Refactoring after every slice of a larger task touches the same code several times, and the review afterwards finds things the refactor should have covered. One collected pass at the end is cheaper and sees the whole picture.
+4. **Not delegating at all.** The orchestrator starts mechanical work with many steps itself (cleanup, dead code, the same fix in many places) without ever thinking of a subagent. Rule: before making more than a few edits yourself, stop and check whether the rest should be delegated. A precise list, for example from `tsc --noUnusedLocals` or a linter, is an ideal Haiku brief.
 
 ## Look up earlier lessons first
 
@@ -51,6 +52,8 @@ Ask these for every delegated piece of work. The answers decide the model.
 - Trade-offs, architecture, unclear bug hunts, anything where a wrong decision is expensive.
 - Prefer doing this yourself as orchestrator or presenting it to the user with a recommendation. Delegate to Opus only for well-bounded deep work such as an independent analysis.
 
+**Agent type.** `model` works with every agent type, the type decides the tools. Read-only search and research in the codebase: `Explore` (no write tools, so the read-only boundary is technical, not just a request). It locates code and reads excerpts, for a full summary or review of a file use `general-purpose`. Changes: `general-purpose`. `Explore` still has Bash, so on a live system it is not read-only by itself.
+
 **Effort.** The Agent tool also takes `effort`. Use `lower` for mechanical, self-checking briefs, `higher` for a well-specified piece that needs more reasoning. Sonnet with lower effort and Haiku can both be valid. If unsure, prefer Haiku with a sharper brief.
 
 ## Writing a brief
@@ -60,6 +63,8 @@ Ask these for every delegated piece of work. The answers decide the model.
 - **Goal in one sentence** and the done criterion (which tests turn green, which command must pass, which questions are answered).
 - **Exact files or systems** to read and to change, and what must not be touched (tests, public interfaces).
 - **What to report back:** changed files, test result, anything unclear. No silent guessing.
+- **Which checks the agent runs itself.** The fast ones that fit the brief: typecheck, build, the affected tests, linter. The agent fixes failures before reporting. Slow or broad checks stay with the orchestrator after the result is in: full test suite when it is long, visual or snapshot comparison over many outputs, end-to-end runs, anything on a live system. Name both in the brief so the agent does not skip the fast checks or start the slow ones.
+- **Current state when handing over mid-work.** If the working copy already has uncommitted changes, say so and name them briefly. Add: do not commit, no git commands that change state (`checkout`, `stash`, `reset`, `commit`), keep the existing changes.
 - **Boundaries and abort conditions.** Most important for server and infrastructure work, useful everywhere:
   - What is allowed and what is not, with examples. For a live system: only reading commands, for example `nft list ruleset` and `docker ps` are allowed, `nft add`, `systemctl restart` or editing files are not.
   - When to stop instead of retrying. On an authentication error do not try again (fail2ban may ban the host), report it.
@@ -76,7 +81,7 @@ A boundary in the brief is a request, not an enforcement. For live systems add a
 
 ## Parallel and background agents
 
-Independent pieces, such as a research question and an analysis of another system, start in ONE message with several Agent calls, as background agents (`run_in_background`) if there is other work meanwhile. Check every result yourself before passing it on or acting on it, especially a proposal for a live system. There, check the rollback path in particular: in practice a Sonnet proposal was sound except for a rollback that would have flushed the firewall completely instead of restoring the old ruleset.
+Independent pieces, such as a research question and an analysis of another system, start in ONE message with several Agent calls, as background agents (`run_in_background`) if there is other work meanwhile. Check every result yourself before passing it on or acting on it (read the diff or report, then run the slow checks named in the brief), especially a proposal for a live system. There, check the rollback path in particular: in practice a Sonnet proposal was sound except for a rollback that would have flushed the firewall completely instead of restoring the old ruleset.
 
 ## Workflow for larger coding tasks
 
