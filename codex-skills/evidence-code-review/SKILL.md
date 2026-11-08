@@ -58,7 +58,7 @@ Lies nicht nur Patchzeilen, sondern bei Bedarf die vollständigen Dateien und Au
 3. Kernlogik einschließlich Randfällen, Fehlerpfaden, Transaktionen, Nebenläufigkeit, Zeit und Datum
 4. Tests und deren Fähigkeit, die zentrale Änderung tatsächlich zu erkennen
 
-Prüfe in dieser Priorität: Sicherheit, Korrektheit, Tests, Architektur, Wartbarkeit, Stil. Bündele gleichartige Stilprobleme. Prüfe bei neuen oder umbenannten Methoden Sprach- und Projektkonvention sowie die Übereinstimmung von Name, Nebenwirkungen und Verhalten. Frameworkvorgaben und Overrides sind ausgenommen.
+Prüfe in dieser Priorität: Sicherheit, Korrektheit, Tests, Architektur, Wartbarkeit, Stil. Bündele gleichartige Stilprobleme. Prüfe bei neuen oder umbenannten Methoden Sprach- und Projektkonvention sowie die Übereinstimmung von Name, Nebenwirkungen und Verhalten. Frameworkvorgaben und Overrides sind ausgenommen. Melde Überladungen, die an derselben Parameterposition verschiedene funktionale Interfaces erwarten (z. B. Wert- und void-Variante), als [Sollte] in Wartbarkeit, weil einzeilige Lambdas dann mehrdeutig sind. Vorschlag: Varianten verschieden benennen.
 
 ## 4. Unabhängiger zweiter Durchgang
 
