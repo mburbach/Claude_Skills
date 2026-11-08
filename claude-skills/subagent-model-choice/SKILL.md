@@ -1,6 +1,6 @@
 ---
 name: subagent-model-choice
-description: Choose the right model (Haiku, Sonnet or Opus) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, act as orchestrator for a story or ticket, or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
+description: Choose the right model (Haiku, Sonnet or Opus) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, delegate research or read-only analysis of servers and infrastructure, act as orchestrator for a story or ticket, or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
 ---
 
 # Subagent Model Choice
@@ -32,6 +32,7 @@ Ask these for every delegated piece of work. The answers decide the model.
 - Green step in TDD: tests exist and fail, make them pass without changing the tests.
 - Mechanical changes along a given pattern: renames, boilerplate, applying the same fix to a list of places.
 - Refactor steps when the orchestrator names the exact places and the target shape.
+- Ops research: version and feature facts with a fixed list of questions and a source required for every answer.
 
 **Sonnet**
 - The task has to be understood before it can be done.
@@ -39,6 +40,9 @@ Ask these for every delegated piece of work. The answers decide the model.
 - Changes across several interacting files.
 - Refactor steps that need some design freedom inside a given direction.
 - Fallback after Haiku failed twice on the same piece.
+- Read-only analysis of a live system with a security angle, for example firewall rules on a production server. Question 5 lifts this above Haiku because a wrong conclusion can lock the user out.
+
+**Not delegated:** changes to production systems. The subagent may analyse and propose, the orchestrator presents the proposal and applies it only after the user agrees.
 
 **Opus**
 - Trade-offs, architecture, unclear bug hunts, anything where a wrong decision is expensive.
@@ -55,6 +59,18 @@ A Haiku brief is the reason Haiku works. It contains:
 - **A reference example** from the codebase: "follow the structure of `XyzService`". Small models copy examples far better than they follow abstract rules.
 - **Concrete style rules** that can be checked: method length, nesting depth, naming convention with one correct and one wrong example, language of comments. Take them from the project prompt or CLAUDE.md.
 - **What to report back:** changed files, test result, anything unclear. No silent guessing.
+
+For research briefs, require a source for every answer and the rule "write `unbelegt` instead of guessing". Haiku keeps to this well and marks gaps honestly.
+
+**Boundaries and abort conditions (every model, every brief).** Most important for server and infrastructure work, useful everywhere:
+- What is allowed and what is not, with examples. For a live system: only reading commands, for example `nft list ruleset` and `docker ps` are allowed, `nft add`, `systemctl restart` or editing files are not.
+- When to stop instead of retrying. On an authentication error do not try again (fail2ban may ban the host), report it.
+- No secrets, passwords or tokens in the report.
+- The result is a proposal. Nothing is applied, the user decides.
+
+## Parallel and background agents
+
+Independent pieces, such as a research question and an analysis of another system, start in ONE message with several Agent calls, as background agents (`run_in_background`) if there is other work meanwhile. Check every result yourself before passing it on or acting on it, especially a proposal for a live system. There, check the rollback path in particular: in practice a Sonnet proposal was sound except for a rollback that would have flushed the firewall completely instead of restoring the old ruleset.
 
 ## Workflow for larger coding tasks
 
@@ -99,7 +115,16 @@ While a subagent runs, the orchestrator makes no requests, and its cache ages fr
 - 5 min is enough when all waits are short (small slices, fast unit tests) or the context is still small.
 - Before raising the lifetime, check whether the wait can be cut instead: smaller slices, running only the affected tests in the green step and the full build once per slice.
 - Subagent side: a subagent only needs 1 h for itself if it has gaps over 5 minutes between its own requests, for example one long build as a single tool call. Its context is usually small, so this rarely pays off. Do not raise `subagentPromptCacheTtl` to protect the orchestrator, it does not help there.
+- Already set to 1 h (main or subagents): leave it, do not suggest reverting it without a concrete reason. If it looks unintended, ask the user briefly whether it is wanted.
 
 ## Lessons
 
 When a model choice turned out wrong in either direction (Haiku failed, or Sonnet was used where Haiku would have done), save a short lesson with the task type, the model, and what made the difference. Over time this replaces gut feeling with experience.
+
+Use one line in a fixed format so lessons stay comparable across projects:
+
+`Aufgabentyp | Modell + effort | Ergebnis | was entschied`
+
+Example: `Read-only-Analyse nftables Produktivserver | Sonnet | korrekt, Vorschlag brauchbar | Aussperr-Risiko (Frage 5)`.
+
+Save it with `memory_lesson_save` in project `global`, since model choice is not tied to one project, and add the project name as a tag.
