@@ -15,24 +15,27 @@ Failure modes this skill exists to prevent, all observed in practice:
 2. **Haiku code that works but is not clean.** Long methods, duplication, vague names, ignored project conventions. Tests are green, the code still needs work.
 3. **Refactoring too early.** Refactoring after every slice of a larger task touches the same code several times, and the review afterwards finds things the refactor should have covered. One collected pass at the end is cheaper and sees the whole picture.
 
+## Look up earlier lessons first
+
+Before choosing, search the lessons for the task type, for example `am-search -p global "Recherche"` or `am-search -p global "Read-only-Analyse"`. Try two or three short terms. Matches appear in the "Lessons" part of the output, mixed with unrelated lessons from `global`, so pick the lines in the format below. A matching lesson outweighs the general guide below. See [Lessons](#lessons) for the format.
+
 ## Decision questions
 
 Ask these for every delegated piece of work. The answers decide the model.
 
 1. **Is the brief clear?** Goal, files, pattern and done criterion are named. If the agent first has to find out *what* to do, go up one level.
 2. **Can the result be checked cheaply?** Build, tests, a short diff, the review skill. If yes, a failed Haiku attempt costs little.
-3. **How much context is needed at once?** One or two files with a clear interface is Haiku. Several files that interact, side effects, architecture is Sonnet.
-4. **How much judgement is inside?** Trade-offs such as fetch strategy, caching or API design go to Opus, or are not delegated at all and discussed with the user instead.
+3. **How much context is needed at once?** One or two files with a clear interface is Haiku. Several files that interact, side effects, dependencies between modules is Sonnet.
+4. **How much judgement is inside?** Trade-offs such as fetch strategy, caching, API design or architecture decisions go to Opus, or are not delegated at all and discussed with the user instead.
 5. **What does an unnoticed mistake cost?** If a mistake could slip through checks (migrations, data changes, security, concurrency), go up one level.
 
 ## Model guide
 
 **Haiku**
-- Simple research: find usages, list files, summarize a known file, collect facts with a clear question.
+- Simple research: find usages, list files, summarize a known file, collect facts such as versions and features from a fixed list of questions.
 - Green step in TDD: tests exist and fail, make them pass without changing the tests.
 - Mechanical changes along a given pattern: renames, boilerplate, applying the same fix to a list of places.
 - Refactor steps when the orchestrator names the exact places and the target shape.
-- Ops research: version and feature facts with a fixed list of questions and a source required for every answer.
 
 **Sonnet**
 - The task has to be understood before it can be done.
@@ -50,23 +53,26 @@ Ask these for every delegated piece of work. The answers decide the model.
 
 **Effort.** The Agent tool also takes `effort`. Use `lower` for mechanical, self-checking briefs, `higher` for a well-specified piece that needs more reasoning. Sonnet with lower effort and Haiku can both be valid. If unsure, prefer Haiku with a sharper brief.
 
-## Writing a brief for Haiku
+## Writing a brief
 
-A Haiku brief is the reason Haiku works. It contains:
+**Every brief** contains:
 
-- **Goal in one sentence** and the done criterion (which tests turn green, which command must pass).
-- **Exact files** to read and to change, and what must not be touched (tests, public interfaces).
+- **Goal in one sentence** and the done criterion (which tests turn green, which command must pass, which questions are answered).
+- **Exact files or systems** to read and to change, and what must not be touched (tests, public interfaces).
+- **What to report back:** changed files, test result, anything unclear. No silent guessing.
+- **Boundaries and abort conditions.** Most important for server and infrastructure work, useful everywhere:
+  - What is allowed and what is not, with examples. For a live system: only reading commands, for example `nft list ruleset` and `docker ps` are allowed, `nft add`, `systemctl restart` or editing files are not.
+  - When to stop instead of retrying. On an authentication error do not try again (fail2ban may ban the host), report it.
+  - No secrets, passwords or tokens in the report.
+  - The result is a proposal. Nothing is applied, the user decides.
+
+A boundary in the brief is a request, not an enforcement. For live systems add a technical boundary where possible: an SSH (Secure Shell) user without write rights, a read-only API token, or an agent type without write tools.
+
+**For Haiku** the brief is the reason it works. Add:
+
 - **A reference example** from the codebase: "follow the structure of `XyzService`". Small models copy examples far better than they follow abstract rules.
 - **Concrete style rules** that can be checked: method length, nesting depth, naming convention with one correct and one wrong example, language of comments. Take them from the project prompt or CLAUDE.md.
-- **What to report back:** changed files, test result, anything unclear. No silent guessing.
-
-For research briefs, require a source for every answer and the rule "write `unbelegt` instead of guessing". Haiku keeps to this well and marks gaps honestly.
-
-**Boundaries and abort conditions (every model, every brief).** Most important for server and infrastructure work, useful everywhere:
-- What is allowed and what is not, with examples. For a live system: only reading commands, for example `nft list ruleset` and `docker ps` are allowed, `nft add`, `systemctl restart` or editing files are not.
-- When to stop instead of retrying. On an authentication error do not try again (fail2ban may ban the host), report it.
-- No secrets, passwords or tokens in the report.
-- The result is a proposal. Nothing is applied, the user decides.
+- **For research:** a source for every answer and the rule "write `unbelegt` instead of guessing". Haiku keeps to this well and marks gaps honestly.
 
 ## Parallel and background agents
 
@@ -94,37 +100,18 @@ Use this when a task is split across several subagents.
 
 Small single tasks without a split do not need the full pipeline. Implement, check, then a short refactor list, done.
 
-## Prompt cache: 5 minutes or 1 hour
+## Prompt cache
 
-While a subagent runs, the orchestrator makes no requests, and its cache ages from its last request. This holds for foreground and background subagents. If the wait exceeds the cache lifetime, the next orchestrator request rewrites the whole conversation at write price instead of reading it at read price. With a large orchestrator context that is the most expensive moment of the whole task.
-
-**Facts (Claude Code docs, checked 2026-10-30)**
-- Write with 5 min lifetime costs 1.25x base input, write with 1 h costs 2x. A read costs 0.1x (0.05x on Opus 5.5 and Sonnet 5.5). Every read resets the timer.
-- Two separate settings: `promptCacheTtl` (env `CLAUDE_CODE_PROMPT_CACHE_TTL`) for the main conversation, `subagentPromptCacheTtl` (env `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL`) for subagents. Values `"5m"` or `"1h"`. `ENABLE_PROMPT_CACHING_1H=1` sets both, `FORCE_PROMPT_CACHING_5M=1` overrides everything.
-- Defaults: subscription within plan usage has 1 h for the main conversation and 5 min for subagents. API key, cloud provider, or subscription drawing on usage credits has 5 min everywhere unless set explicitly.
-- The model cannot change the lifetime of the running session. Whether a change takes effect without restart is not documented. Assume a restart.
-
-**Check at the start of an orchestrated task**
-1. Estimate the longest waits. Typical candidates over 5 minutes: a full build with integration tests (Testcontainers, Maven, Gradle), the review skill with a second opinion, a subagent with many slices, and the user thinking or testing between turns.
-2. Look up the configured lifetime: `promptCacheTtl` and `subagentPromptCacheTtl` in `~/.claude/settings.json` and the project settings, and the env vars above. Whether the subscription is in overage is not visible from inside. Ask the user if it matters, or point to `/usage`, which shows a line "Prompt cache (main)".
-3. Weigh it (below). If 1 h is worth it and not set, recommend it to the user with the reason and the expected waits. Change settings only after the user agrees, via the `update-config` skill, and note that a restart is likely needed.
-
-**Weighing it**
-- 1 h costs 0.75x extra only on newly written tokens. A miss rewrites the entire context. So one avoided miss on a large orchestrator context usually pays for many turns of extra write cost.
-- 1 h is worth it when waits over 5 minutes are expected at least occasionally and the orchestrator context is large (long prompt file, many results collected).
-- 5 min is enough when all waits are short (small slices, fast unit tests) or the context is still small.
-- Before raising the lifetime, check whether the wait can be cut instead: smaller slices, running only the affected tests in the green step and the full build once per slice.
-- Subagent side: a subagent only needs 1 h for itself if it has gaps over 5 minutes between its own requests, for example one long build as a single tool call. Its context is usually small, so this rarely pays off. Do not raise `subagentPromptCacheTtl` to protect the orchestrator, it does not help there.
-- Already set to 1 h (main or subagents): leave it, do not suggest reverting it without a concrete reason. If it looks unintended, ask the user briefly whether it is wanted.
+While a subagent runs, the orchestrator cache ages. A wait over its lifetime rewrites the whole orchestrator context at write price. When waits over 5 minutes are expected (long builds, review with second opinion, many slices, the user testing between turns) or the orchestrator context is already large, read `cache.md` in this skill folder before starting. It holds the facts, how to check the configured lifetime and how to weigh 5 minutes against 1 hour. For short delegations skip it.
 
 ## Lessons
 
-When a model choice turned out wrong in either direction (Haiku failed, or Sonnet was used where Haiku would have done), save a short lesson with the task type, the model, and what made the difference. Over time this replaces gut feeling with experience.
+Save a lesson when a model choice turned out wrong in either direction (Haiku failed, or Sonnet was used where Haiku would have done), and also when a choice worked in a case that was not obvious beforehand. Over time this replaces gut feeling with experience, as long as lessons are looked up before choosing (see above).
 
 Use one line in a fixed format so lessons stay comparable across projects:
 
 `Aufgabentyp | Modell + effort | Ergebnis | was entschied`
 
-Example: `Read-only-Analyse nftables Produktivserver | Sonnet | korrekt, Vorschlag brauchbar | Aussperr-Risiko (Frage 5)`.
+Example: `Read-only-Analyse nftables Produktivserver | Sonnet + default | korrekt, nur Rollback fehlerhaft | Aussperr-Risiko (Frage 5)`.
 
 Save it with `memory_lesson_save` in project `global`, since model choice is not tied to one project, and add the project name as a tag.
