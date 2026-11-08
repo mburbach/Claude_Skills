@@ -1,6 +1,6 @@
 ---
 name: subagent-model-choice
-description: Choose the right model (Haiku, Sonnet or Opus) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, delegate research or read-only analysis of servers and infrastructure, act as orchestrator for a story or ticket, are about to start multi-step implementation work yourself (refactoring, cleanup, dead code removal, many similar edits), or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
+description: Choose the right model (Haiku, Sonnet or Opus) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this at the start of every coding, fix or research task, before writing code or changing files yourself, since working as orchestrator is the default. Also use it whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, delegate research or read-only analysis of servers and infrastructure, act as orchestrator for a story or ticket, are about to start multi-step implementation work yourself (refactoring, cleanup, dead code removal, many similar edits), or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
 ---
 
 # Subagent Model Choice
@@ -14,7 +14,19 @@ Failure modes this skill exists to prevent, all observed in practice:
 1. **Sonnet or Opus by reflex.** The question "can Haiku do this alone?" is the wrong one. The right question is "can Haiku do this with my brief, and will I notice if it fails?" When the orchestrator has cut the task, named files and fixed the tests, what remains is often plain implementation.
 2. **Haiku code that works but is not clean.** Long methods, duplication, vague names, ignored project conventions. Tests are green, the code still needs work.
 3. **Refactoring too early.** Refactoring after every slice of a larger task touches the same code several times, and the review afterwards finds things the refactor should have covered. One collected pass at the end is cheaper and sees the whole picture.
-4. **Not delegating at all.** The orchestrator starts mechanical work with many steps itself (cleanup, dead code, the same fix in many places) without ever thinking of a subagent. Rule: before making more than a few edits yourself, stop and check whether the rest should be delegated. A precise list, for example from `tsc --noUnusedLocals` or a linter, is an ideal Haiku brief.
+4. **Not delegating at all.** The main agent builds tests, fix and debugging itself, or starts mechanical work with many steps (cleanup, dead code, the same fix in many places), without ever thinking of a subagent. The skill then never loads, because no Agent call was planned. Observed twice, both times the user had to ask for orchestration explicitly. Rule: before making more than a few edits yourself, stop and check whether the rest should be delegated. A precise list, for example from `tsc --noUnusedLocals` or a linter, is an ideal Haiku brief.
+
+## Orchestrator as default
+
+The user wants the main agent to work as orchestrator in every coding, fix or research task, not only when asked. The main agent:
+
+- reads and understands the task, cuts it into pieces,
+- writes the briefs and, where useful, the red tests,
+- checks every result and talks to the user.
+
+Implementation, fixes, refactors and mechanical changes go to subagents. Exception: tiny changes (about one line) where the brief would be longer than the change.
+
+Forked skills and agents (for example `/code-review`, or the Agent tool with `subagent_type: "fork"`) inherit the main agent's model, a `model` override is ignored there. Keep that in mind when weighing cost, a review fork from an Opus session runs on Opus.
 
 ## Look up earlier lessons first
 
