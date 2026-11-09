@@ -26,6 +26,8 @@ The user wants the main agent to work as orchestrator in every coding, fix or re
 
 Implementation, fixes, refactors and mechanical changes go to subagents. Exception: tiny changes (about one line) where the brief would be longer than the change.
 
+Reading pre-work with a few commands is the orchestrator's own job when it makes the brief sharper. Example: in a branch triage, `git rev-list`, `git cherry`, `git merge-base --is-ancestor` and `git apply --check` reduced 13 branches to 19 commits that actually needed a look, and only those went into the briefs. Rule of thumb: if the commands are cheaper than writing the brief and their output narrows the task, run them yourself. Delegate once reading and judging the content starts.
+
 Forked skills and agents (for example `/code-review`, or the Agent tool with `subagent_type: "fork"`) inherit the main agent's model, a `model` override is ignored there. Keep that in mind when weighing cost, a review fork from an Opus session runs on Opus.
 
 ## Look up earlier lessons first
@@ -52,6 +54,7 @@ Ask these for every delegated piece of work. The answers decide the model.
 
 **Sonnet**
 - The task has to be understood before it can be done.
+- Research that needs judgement, not just lookup. Example: "is this diff already in the target branch in another form?" The answer is not a text match but a comparison of content, so it is Sonnet even though nothing is changed.
 - Writing tests when the behavior is known but the test setup is not trivial.
 - Changes across several interacting files.
 - Refactor steps that need some design freedom inside a given direction.
@@ -72,7 +75,7 @@ Ask these for every delegated piece of work. The answers decide the model.
 - **Brief for Fable:** state goal, context and boundaries, not a step list. Over-prescriptive briefs make its results worse, the opposite of Haiku. Name explicitly what it must not do, since it sometimes takes adjacent actions nobody asked for.
 - Not for implementation, green steps, refactors or mechanical work. The TDD pipeline with Haiku and Sonnet is cheaper there and easy to check.
 
-**Agent type.** `model` works with every agent type, the type decides the tools. Read-only search and research in the codebase: `Explore` (no write tools, so the read-only boundary is technical, not just a request). It locates code and reads excerpts, for a full summary or review of a file use `general-purpose`. Changes: `general-purpose`. `Explore` still has Bash, so on a live system it is not read-only by itself.
+**Agent type.** `model` works with every agent type, the type decides the tools. Read-only search and research in the codebase: `Explore` (no write tools, so the read-only boundary is technical, not just a request). It locates code and reads excerpts, for a full summary or review of a file use `general-purpose`. The same holds for read-only work that needs whole diffs or files, such as diff comparisons: `general-purpose` with the read-only boundary in the brief (and a separate worktree as reading copy, see Writing a brief). Changes: `general-purpose`. `Explore` still has Bash, so on a live system it is not read-only by itself.
 
 **Effort.** The Agent tool also takes `effort`. Use `lower` for mechanical, self-checking briefs, `higher` for a well-specified piece that needs more reasoning. Sonnet with lower effort and Haiku can both be valid. If unsure, prefer Haiku with a sharper brief.
 
@@ -84,7 +87,7 @@ Ask these for every delegated piece of work. The answers decide the model.
 - **Exact files or systems** to read and to change, and what must not be touched (tests, public interfaces).
 - **What to report back:** changed files, test result, anything unclear. No silent guessing.
 - **Which checks the agent runs itself.** The fast ones that fit the brief: typecheck, build, the affected tests, linter. The agent fixes failures before reporting. Slow or broad checks stay with the orchestrator after the result is in: full test suite when it is long, visual or snapshot comparison over many outputs, end-to-end runs, anything on a live system. Name both in the brief so the agent does not skip the fast checks or start the slow ones.
-- **Current state when handing over mid-work.** If the working copy already has uncommitted changes, say so and name them briefly. Add: do not commit, no git commands that change state (`checkout`, `stash`, `reset`, `commit`), keep the existing changes.
+- **Current state when handing over mid-work.** If the working copy already has uncommitted changes, say so and name them briefly. Add: do not commit, no git commands that change state (`checkout`, `stash`, `reset`, `commit`), keep the existing changes. If the uncommitted changes belong to someone else and read-only agents only need a clean state, create a separate detached worktree as reading copy (`git worktree add --detach ../repo-lesestand <ref>`), name its path in the brief and remove it afterwards.
 - **Boundaries and abort conditions.** Most important for server and infrastructure work, useful everywhere:
   - What is allowed and what is not, with examples. For a live system: only reading commands, for example `nft list ruleset` and `docker ps` are allowed, `nft add`, `systemctl restart` or editing files are not.
   - When to stop instead of retrying. On an authentication error do not try again (fail2ban may ban the host), report it.
