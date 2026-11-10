@@ -1,6 +1,6 @@
 ---
 name: subagent-model-choice
-description: Choose the right model (Haiku, Sonnet, Opus or, after asking the user, Fable) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this at the start of every coding, fix or research task, before writing code or changing files yourself, since working as orchestrator is the default. Also use it whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, delegate research or read-only analysis of servers and infrastructure, act as orchestrator for a story or ticket, are about to start multi-step implementation work yourself (refactoring, cleanup, dead code removal, many similar edits), or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
+description: Choose the right model (Haiku, Sonnet, Opus or, after asking the user, Fable) and effort for a subagent before delegating, and plan larger coding work as a TDD pipeline where tests are fixed first, Haiku or Sonnet make them green in small slices, and one collected refactor pass runs at the end, after the code review. Also checks whether waits on subagents will exceed the 5 minute prompt cache and weighs raising it to 1 hour. Use this at the start of every coding, fix, research or data task (such as sorting tickets), before writing code, changing files or changing data yourself, since working as orchestrator is the default. Also use it whenever you are about to call the Agent tool with a model choice, split a coding task across several subagents, delegate research or read-only analysis of servers and infrastructure, act as orchestrator for a story or ticket, are about to start multi-step implementation work yourself (refactoring, cleanup, dead code removal, many similar edits), or catch yourself defaulting to Sonnet or Opus "to be safe", including requests like "verteil das auf Subagents", "nimm Haiku dafür", "welches Modell soll das machen", "du bist Orchestrator" or a prompt file that assigns you the orchestrator role.
 ---
 
 # Subagent Model Choice
@@ -15,16 +15,23 @@ Failure modes this skill exists to prevent, all observed in practice:
 2. **Haiku code that works but is not clean.** Long methods, duplication, vague names, ignored project conventions. Tests are green, the code still needs work.
 3. **Refactoring too early.** Refactoring after every slice of a larger task touches the same code several times, and the review afterwards finds things the refactor should have covered. One collected pass at the end is cheaper and sees the whole picture.
 4. **Not delegating at all.** The main agent builds tests, fix and debugging itself, or starts mechanical work with many steps (cleanup, dead code, the same fix in many places), without ever thinking of a subagent. The skill then never loads, because no Agent call was planned. Observed twice, both times the user had to ask for orchestration explicitly. Rule: before making more than a few edits yourself, stop and check whether the rest should be delegated. A precise list, for example from `tsc --noUnusedLocals` or a linter, is an ideal Haiku brief.
+5. **Loading the skill too late.** The skill was loaded only when a first Agent call came up, after analysis and first changes (labels created, ticket commented) were already done. The timing was chance, not part of the routine. Rule: load the skill as the first step of the task, before the first change, also for data and ticket work, not only for code.
 
 ## Orchestrator as default
 
-The user wants the main agent to work as orchestrator in every coding, fix or research task, not only when asked. The main agent:
+The user wants the main agent to work as orchestrator in every coding, fix, research or data task (for example sorting tickets), not only when asked. The main agent:
 
 - reads and understands the task, cuts it into pieces,
 - writes the briefs and, where useful, the red tests,
 - checks every result and talks to the user.
 
-Implementation, fixes, refactors and mechanical changes go to subagents. Exception: tiny changes (about one line) where the brief would be longer than the change.
+Implementation, fixes, refactors and mechanical changes go to subagents. Exception: tiny changes where the brief would be longer than the change.
+
+What counts as tiny depends on how much the brief has to explain, not only on the line count:
+
+- **Do it yourself:** about one to ten lines in one place, where the brief would have to contain the code anyway. Typical: a one-line fix, a changed constant, a missing import.
+- **Delegate:** once red tests exist, even for 20 to 30 lines of logic. The tests are most of the brief, so it stays short ("make `test_board_check_*` green, do not change the tests, follow `foo()`"). Haiku fits well here.
+- **In between** (logic without tests, more than a few lines): write the red tests first, then the case above applies.
 
 Reading pre-work with a few commands is the orchestrator's own job when it makes the brief sharper. Example: in a branch triage, `git rev-list`, `git cherry`, `git merge-base --is-ancestor` and `git apply --check` reduced 13 branches to 19 commits that actually needed a look, and only those went into the briefs. Rule of thumb: if the commands are cheaper than writing the brief and their output narrows the task, run them yourself. Delegate once reading and judging the content starts.
 
@@ -51,6 +58,7 @@ Ask these for every delegated piece of work. The answers decide the model.
 - Green step in TDD: tests exist and fail, make them pass without changing the tests.
 - Mechanical changes along a given pattern: renames, boilerplate, applying the same fix to a list of places.
 - Refactor steps when the orchestrator names the exact places and the target shape.
+- Sorting many items by given rules, for example labels for tickets or categories for data rows, with the result as a proposal file (JSON) and not applied. Condition: the rules are written out with one or two examples per class, and there is a class `unklar` instead of guessing. For many items split into batches of about 40 to 60 and run them in parallel. The orchestrator checks a sample per batch and every `unklar`, then applies the changes itself. If the rules need weighing or the classes overlap a lot, use Sonnet.
 
 **Sonnet**
 - The task has to be understood before it can be done.
@@ -75,7 +83,15 @@ Ask these for every delegated piece of work. The answers decide the model.
 - **Brief for Fable:** state goal, context and boundaries, not a step list. Over-prescriptive briefs make its results worse, the opposite of Haiku. Name explicitly what it must not do, since it sometimes takes adjacent actions nobody asked for.
 - Not for implementation, green steps, refactors or mechanical work. The TDD pipeline with Haiku and Sonnet is cheaper there and easy to check.
 
-**Agent type.** `model` works with every agent type, the type decides the tools. Read-only search and research in the codebase: `Explore` (no write tools, so the read-only boundary is technical, not just a request). It locates code and reads excerpts, for a full summary or review of a file use `general-purpose`. The same holds for read-only work that needs whole diffs or files, such as diff comparisons: `general-purpose` with the read-only boundary in the brief (and a separate worktree as reading copy, see Writing a brief). Changes: `general-purpose`. `Explore` still has Bash, so on a live system it is not read-only by itself.
+**Agent type.** `model` works with every agent type, the type decides the tools. Read-only search and research in the codebase: `Explore` (no file write tools, so for files the read-only boundary is technical, not just a request). It can not write a result file, it returns the result in its report. It locates code and reads excerpts, for a full summary or review of a file use `general-purpose`. The same holds for read-only work that needs whole diffs or files, such as diff comparisons: `general-purpose` with the read-only boundary in the brief (and a separate worktree as reading copy, see Writing a brief). Changes: `general-purpose`. `Explore` still has Bash, so on a live system it is not read-only by itself.
+
+**MCP (Model Context Protocol) tools in subagents.** `general-purpose` and `Explore` both get all MCP tools of the session, including writing ones such as `tasks_update`, `labels_delete` or a generic `do_action`. A read-only boundary in the brief is only a request. Ways to make it technical, best first:
+
+1. **Fetch the data yourself and hand over a file.** The orchestrator reads with the MCP read tools (for example `tasks_list` page by page) into a JSON file in the scratchpad. The subagent gets only the file path and its brief says it needs no MCP tools. Still only a request, but the agent has no reason to touch the system. Often the cheapest way, and the orchestrator reads the data for checking anyway.
+2. **Own agent type with a tool allowlist.** A file `.claude/agents/<name>.md` (project) or `~/.claude/agents/<name>.md` (user) with a `tools:` line that lists only the needed tools, for example `tools: Read, Write, mcp__vikunja__tasks_list, mcp__vikunja__tasks_read, mcp__vikunja__labels_list`. Then call it with `subagent_type: "<name>"`, `model` still works. Agent files are read at session start, so a new one may need a restart or creating it via `/agents`. Worth it for tasks that repeat.
+3. **Read-only token** for the MCP server, if the service offers one. Ask the user, never create tokens yourself.
+
+Writing back (labels, comments, status) stays with the orchestrator after checking the proposal, same as changes to production systems.
 
 **Effort.** The Agent tool also takes `effort`. Use `lower` for mechanical, self-checking briefs, `higher` for a well-specified piece that needs more reasoning. Sonnet with lower effort and Haiku can both be valid. If unsure, prefer Haiku with a sharper brief.
 
