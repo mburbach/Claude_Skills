@@ -27,7 +27,7 @@ Once confirmed, write these coordinates into the project memory: site and cloud 
 **2. Research before drafting.**
 - Search for existing related or duplicate issues, so nothing already present gets recreated. Offer to update the existing issue instead.
 - Identify the right parent. For a Task, check whether an Epic already fits by searching or inspecting parents of sibling tickets in the same area. For Sub-Tasks, the exact parent issue key is required.
-- Look up the project's **actual** issue type names before creating anything, for example via the Jira "get project issue types" capability. The subtask type is not reliably called "Sub-Task" everywhere. It can be localized, for example "Unteraufgabe", or renamed. Never assume, verify per project.
+- Look up the project's **actual** issue type names before creating anything, for example with the Atlassian plugin via `executeRead` and `listJiraProjectIssueTypesMetadata`. The subtask type is not reliably called "Sub-Task" everywhere. It can be localized, for example "Unteraufgabe", or renamed. Never assume, verify per project.
 
 **3. Draft, don't create.** Write out every issue you intend to create: summary, issue type, parent/epic, labels, and the full description using the template below. Do this as a normal chat message, not as a tool call.
 
@@ -285,6 +285,8 @@ Keep the open decisions to real forks, so the user can answer them in one messag
 
 When composing the description parameter for a tool call, write it as genuine multi-paragraph text with real line breaks between sections and bullet points, the same way you'd write a normal chat message. Do **not** build the string by concatenating literal `\n` or `\n\n` characters into what is otherwise a single-line value. Several Jira tool integrations render that literally instead of interpreting it as a line break, which produces descriptions with visible `\n\n` in them. If you are unsure whether your call will render correctly, create or edit one issue first and read back its rendered description before doing the rest of the batch.
 
+When extending an existing issue whose description holds images or attachments, read it with `responseContentFormat: html` and write it back with `contentFormat: html`. In the default markdown format `editJiraIssue` drops inline media.
+
 ## Issue type & hierarchy notes
 
 - **Epic** is a durable theme or area, not a single deliverable. Only propose creating one when the work doesn't fit any existing Epic, and check first.
@@ -298,6 +300,8 @@ When a body of work is large enough to need internal sequencing, for example "th
 ## Verlinkung
 
 A dependency that lives only in a sentence in a description is invisible on the board, in filters and in every planning view. Real relations belong into issue links.
+
+With the Atlassian plugin, links are created via `executeWrite` with `createJiraIssueLink`. Look up the link type names first via `executeRead` with `listJiraIssueLinkTypes`.
 
 - The link replaces any mention in the description. Never write a key into the text in addition to the link.
 - Look up which link types the project actually offers before using one, they are configured per site and are often renamed.
