@@ -16,6 +16,8 @@ Further files in this folder, read only when needed: `pipeline.md` (task split a
 3. **Refactoring after every slice.** Touches the same code several times. One pass at the end, after the review.
 4. **Not delegating at all.** Before making more than a few edits yourself, stop and check whether the rest should be delegated. A precise list, for example from `tsc --noUnusedLocals` or a linter, is an ideal Haiku brief.
 5. **Loading this skill too late**, only when a first Agent call comes up, after analysis and first changes. Load it as the first step, also for data and ticket work.
+6. **Opus by inheritance.** An Agent call without `model` runs on the main agent's model, usually Opus. Measured in one week: Opus subagents used more than Sonnet and Haiku together, one implementation agent ran 311 turns on Opus. Set `model` on every Agent call. Long implementation work never runs on Opus.
+7. **A fat orchestrator context.** The main agent rereads its whole context on every turn. Measured: about 76 % of all usage was the Opus main chat, at 100k to 300k tokens per turn, while subagents were barely used. Keep the own context small (see below).
 
 ## Orchestrator as default
 
@@ -29,7 +31,13 @@ Exception, tiny changes. It depends on how much the brief has to explain:
 
 Reading pre-work is your own job when a few commands are cheaper than the brief and narrow the task. Example: `git cherry` and `git merge-base --is-ancestor` reduced 13 branches to 19 commits, and only those went into the briefs. Delegate once reading and judging content starts.
 
-Forks (`/code-review`, `subagent_type: "fork"`) inherit the main agent's model and ignore `model`. A review fork from an Opus session runs on Opus.
+Forks (`/code-review`, `subagent_type: "fork"`) inherit the main agent's model and ignore `model`. A review fork from an Opus session runs on Opus. Run `/code-review` at `medium` unless the user asks for more.
+
+**Keep the own context small.** Every line in it is paid again on every later turn.
+
+- Large reading, searching and log digging goes to `Explore` or Haiku with a short report, not into the main context.
+- Check results by test result, build output and `git diff --stat`. Read only the hunks that matter, not whole changed files.
+- When a story or task is done, save the state (memory, lessons) and suggest `/clear` to the user before the next one, instead of continuing in a context of 200k tokens or more.
 
 ## Look up lessons first
 
@@ -113,7 +121,7 @@ Ask these for every delegated piece of work. The answers decide the model.
 - Independent pieces start in ONE message with several Agent calls, as background agents (`run_in_background`) if there is other work meanwhile.
 - **Shared interface:** if parallel agents build against the same interface, fix it yourself first, with types and units. In practice an agent that knew the interface only from another agent's tests passed a duration object where seconds were expected.
 - **Writing agents in parallel** in the same repo get their own worktree each (`isolation: "worktree"`), so edits, builds and tests do not collide. Merge the results yourself.
-- **Check every result** yourself before passing it on or acting on it: read the diff or report, then run the slow checks. For a proposal on a live system check the rollback path in particular (`boundaries.md`).
+- **Check every result** yourself before passing it on or acting on it: read the report and the diff stat, the relevant hunks only, then run the slow checks. For a proposal on a live system check the rollback path in particular (`boundaries.md`).
 - **Small corrections** go to the same agent via `SendMessage`, it keeps its context. Start a new agent only when the model should change or the old context went wrong.
 
 ## Larger coding tasks
