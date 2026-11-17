@@ -30,11 +30,11 @@ Fehlt nur eine unwesentliche Angabe, verwende die genannten Defaults und nenne s
 
 1. Ermittle das Ziel der Änderung aus Ticket, Beschreibung des Pull Requests oder Merge Requests, Commit-Nachrichten und Projektdokumentation.
 2. Lies bei verfügbarem Jira- oder Atlassian-Zugriff Beschreibung, Akzeptanzkriterien, Kommentare, Anhänge und relevante Verlinkungen. Fehlt der Zugriff, dokumentiere diese Grenze und arbeite mit lokalen Quellen weiter.
-3. Lies `AGENTS.md`, `CLAUDE.md`, README, relevante Dateien unter `docs/` und Architecture Decision Records.
+3. Lies `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `CODING_STANDARDS.md`, README, relevante Dateien unter `docs/` und Architecture Decision Records.
 4. Ermittle den exakten Diff mit Merge Base. Wechsle nicht den Checkout des Nutzers. Nutze bei einem anderen Ziel einen temporären Worktree unter `/tmp` und entferne ihn anschließend wieder.
 5. Prüfe bei einem übergeordneten Arbeitsverzeichnis alle betroffenen Git-Repositories. Führe Umfang, Basis und Lauffähigkeit je Repository auf.
 
-Erfasse mindestens geänderte Dateien, hinzugefügte und entfernte Zeilen sowie die Commits im Umfang.
+Erfasse mindestens geänderte Dateien, hinzugefügte und entfernte Zeilen sowie die Commits im Umfang. Lässt sich die Basis nicht auflösen oder ist der Diff leer, brich hier ab und frage nach.
 
 ## 2. Build, Tests und Lauffähigkeit
 
@@ -58,7 +58,7 @@ Lies nicht nur Patchzeilen, sondern bei Bedarf die vollständigen Dateien und Au
 3. Kernlogik einschließlich Randfällen, Fehlerpfaden, Transaktionen, Nebenläufigkeit, Zeit und Datum
 4. Tests und deren Fähigkeit, die zentrale Änderung tatsächlich zu erkennen
 
-Prüfe in dieser Priorität: Sicherheit, Korrektheit, Tests, Architektur, Wartbarkeit, Stil. Bündele gleichartige Stilprobleme. Prüfe bei neuen oder umbenannten Methoden Sprach- und Projektkonvention sowie die Übereinstimmung von Name, Nebenwirkungen und Verhalten. Frameworkvorgaben und Overrides sind ausgenommen. Melde Überladungen, die an derselben Parameterposition verschiedene funktionale Interfaces erwarten (z. B. Wert- und void-Variante), als [Sollte] in Wartbarkeit, weil einzeilige Lambdas dann mehrdeutig sind. Vorschlag: Varianten verschieden benennen.
+Prüfe in dieser Priorität: Sicherheit, Korrektheit, Tests, Architektur, Wartbarkeit, Stil. Bündele gleichartige Stilprobleme. Prüfe in Wartbarkeit auch Code-Gerüche wie lange Methoden und Parameterlisten, Feature-Neid, Datenklumpen, primitive Typen statt Werttypen und Schrotflinten-Änderungen. Gerüche sind Urteile, höchstens [Sollte], immer mit konkretem Umbauvorschlag. Prüfe bei neuen oder umbenannten Methoden Sprach- und Projektkonvention sowie die Übereinstimmung von Name, Nebenwirkungen und Verhalten. Frameworkvorgaben und Overrides sind ausgenommen. Melde Überladungen, die an derselben Parameterposition verschiedene funktionale Interfaces erwarten (z. B. Wert- und void-Variante), als [Sollte] in Wartbarkeit, weil einzeilige Lambdas dann mehrdeutig sind. Vorschlag: Varianten verschieden benennen.
 
 ## 4. Unabhängiger zweiter Durchgang
 
