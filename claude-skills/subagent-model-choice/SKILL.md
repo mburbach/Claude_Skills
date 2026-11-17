@@ -122,7 +122,7 @@ Ask these for every delegated piece of work. The answers decide the model.
 - **Shared interface:** if parallel agents build against the same interface, fix it yourself first, with types and units. In practice an agent that knew the interface only from another agent's tests passed a duration object where seconds were expected.
 - **Writing agents in parallel** in the same repo get their own worktree each (`isolation: "worktree"`), so edits, builds and tests do not collide. Merge the results yourself.
 - **Check every result** yourself before passing it on or acting on it: read the report and the diff stat, the relevant hunks only, then run the slow checks. For a proposal on a live system check the rollback path in particular (`boundaries.md`).
-- **Small corrections** go to the same agent via `SendMessage`, it keeps its context. Start a new agent only when the model should change or the old context went wrong.
+- **Corrections**: fix it yourself when the correction is a few words or lines you can state exactly, cheaper than a message. Send it back to the same agent via `SendMessage` when it misread a rule or the same mistake recurs across the result, it keeps its context, and tighten the brief for the next agent. Start a new agent only when the model should change or the old context went wrong.
 
 ## Larger coding tasks
 
