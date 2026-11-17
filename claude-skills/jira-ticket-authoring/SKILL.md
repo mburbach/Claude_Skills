@@ -1,75 +1,83 @@
 ---
 name: jira-ticket-authoring
-description: Draft, review, extend and create Jira issues (Epics, Tasks, Stories, Sub-Tasks, Bugs) using a consistent internal template (Ziel/Kontext/Aufgaben/Akzeptanzkriterien/Technische Hinweise, plus a separate structure for bug reports), a plain writing style without dashes or semicolons, a structured review pass (Schnitt, Vollständigkeit, Subtasks) and a strict draft-then-confirm workflow where nothing reaches Jira unconfirmed. Use this whenever the user asks to create, draft, plan, restructure, review, break down or extend Jira tickets, tasks, user stories, subtasks, bugs or epics, including requests like "leg dafür ein Jira-Ticket an", "wie bilden wir das in Jira ab", "erstelle Subtasks für X", "schau dir das Ticket nochmal an", "ergänze CD-83 um ..." oder "das sollten wir als Epic anlegen", even if they don't mention this skill by name. Always use this instead of calling Jira create/edit tools directly.
+description: Drafts, reviews, extends and creates Jira tickets (Epics, Tasks, Stories, Sub-Tasks, Bugs) with the internal template and a draft-then-confirm workflow where nothing reaches Jira unconfirmed. Use this whenever the user asks to create, draft, plan, restructure, review, break down or extend Jira tickets, tasks, user stories, subtasks, bugs or epics, including requests like "leg dafür ein Jira-Ticket an", "wie bilden wir das in Jira ab", "erstelle Subtasks für X", "schau dir das Ticket nochmal an", "ergänze CD-83 um ...", or "das sollten wir als Epic anlegen", even if they don't mention this skill by name. Always use this instead of calling Jira create/edit tools directly.
 ---
 
 # Jira Ticket Authoring
 
-A repeatable workflow for turning a plan, discussion, or feature description into well-formed Jira issues. It combines a fixed description template, a plain writing style, a mandatory review pass over the draft, and a hard rule that nothing gets written to Jira before the user has seen and approved the exact content.
+Turns a plan, discussion or feature description into well-formed Jira issues: a fixed description template, a plain writing style, a review pass over the draft, and one hard rule.
 
-## Why this exists
+**Nothing is written to Jira before the user has seen and approved the exact content.** Creating or editing issues is a visible action in a shared system. Others get notified or plan around the result.
 
-Failure modes this skill exists to prevent, all observed in practice:
+Other failure modes this skill prevents: broken formatting (see "Formatting gotcha"), machine-sounding text (see "Writing style" and "Wie ein Kollege schreibt"), tickets that are too coarse or drop half of what was discussed (review pass), growing Akzeptanzkriterien lists, and keys of other tickets inside descriptions.
 
-1. **Silent ticket creation.** Creating or editing issues is a visible, shared-system action. Once created, other people may see it, get notified, or start planning around it. Drafting first and confirming avoids surprising the user with tickets they didn't expect, wrongly scoped tickets, or tickets under the wrong Epic.
-2. **Broken formatting.** Passing a description as a single-line string with literal `\n` characters instead of real line breaks renders as visible backslash-n text in Jira. See "Formatting gotcha" below.
-3. **Machine-sounding text.** Tickets that read like generated text stand out in a backlog written by humans. See "Writing style" below.
-4. **Tickets that are too coarse or incomplete.** A ticket that bundles three independent deliverables blocks the board for weeks, and a ticket that quietly drops half of what was discussed causes rework. The review pass in step 4 catches both before anything is created.
-5. **Wuchernde Akzeptanzkriterien.** Criteria lists that keep growing until nobody reads them. Every line has to be verified at acceptance, so a list of twelve turns the check into a formality. See "Akzeptanzkriterien kurz halten".
-6. **Verweise auf andere Tickets im Text.** A key like "siehe CD-83" in a description makes the reader believe there is more work for them in that other ticket, and it forces them to open it to understand this one. See "Keine Verweise auf andere Tickets".
+## Further files
+
+Read these when the condition applies, they sit next to this file:
+
+- `bug-tickets.md`: when a ticket is a bug report (step 3 and the template).
+- `existing-tickets.md`: when changing, extending or commenting on a ticket that already exists in Jira, and when the review pass runs on an existing ticket (suggested edit versus comment on someone else's ticket).
+- `linking.md`: when the draft proposes issue links (link type choice) and when creating them.
 
 ## Workflow
 
-**1. Establish the target.** Confirm (or recall from memory/context) the Jira site (cloud ID), project key, and board. Don't re-ask if this is already established for the current project or session.
-
-Once confirmed, write these coordinates into the project memory: site and cloud ID, project key, board, the actual name of the subtask type in that project, the language the team writes tickets in, and any team convention on ticket size or summary format. They are stable per project, and looking them up again costs a round trip in every new session. Update the memory entry when something changes instead of adding a second one.
+**1. Establish the target.** Confirm (or recall from memory/context) the Jira site (cloud ID), project key and board. Don't re-ask if already established for the project or session. Once confirmed, write these into the project memory: site and cloud ID, project key, board, the actual name of the subtask type, the language the team writes tickets in, and any team convention on ticket size or summary format. Update the entry when something changes instead of adding a second one.
+Done when site, project key and board are known.
 
 **2. Research before drafting.**
-- Search for existing related or duplicate issues, so nothing already present gets recreated. Offer to update the existing issue instead.
-- Identify the right parent. For a Task, check whether an Epic already fits by searching or inspecting parents of sibling tickets in the same area. For Sub-Tasks, the exact parent issue key is required.
-- Look up the project's **actual** issue type names before creating anything, for example with the Atlassian plugin via `executeRead` and `listJiraProjectIssueTypesMetadata`. The subtask type is not reliably called "Sub-Task" everywhere. It can be localized, for example "Unteraufgabe", or renamed. Never assume, verify per project.
+- Search for existing related or duplicate issues, and offer to update the existing issue instead of recreating it.
+- Identify the right parent. For a Task, check whether an Epic already fits by searching or inspecting parents of sibling tickets. For Sub-Tasks the exact parent issue key is required.
+- Look up the project's **actual** issue type names before creating anything, for example with the Atlassian plugin via `executeRead` and `listJiraProjectIssueTypesMetadata`. The subtask type can be localized ("Unteraufgabe") or renamed. Verify per project.
+Done when duplicates were searched, the parent is named (or it is stated that no Epic fits) and the type names are verified.
 
-**3. Draft, don't create.** Write out every issue you intend to create: summary, issue type, parent/epic, labels, and the full description using the template below. Do this as a normal chat message, not as a tool call.
+**3. Draft, don't create.** Write out every issue as a normal chat message, not a tool call: summary, issue type, parent/epic, labels, the full description using the template below, and the proposed issue links.
+Decide the issue type first:
+- **Epic** is a durable theme or area, not a single deliverable. Only propose creating one when the work doesn't fit any existing Epic.
+- **Story** is user-facing functionality framed around a user goal. Use it when the project distinguishes Story from Task, which not all projects do.
+- **Task** is a scoped, well-defined piece of work that is neither a user story nor a bug.
+- **Bug** tracks incorrect existing behavior, not new work. Missing functionality is not a bug: if nothing ever worked differently, it is a Task or a Story. Decide this before drafting, because it changes the template. Before drafting a bug from someone else's report, try to reproduce it from the given steps or check the claim in the code, and say in the draft whether it was confirmed, failed or could not be checked.
+- **Sub-Task** is a smaller piece of a single parent Task or Story, always with `parent` set to that parent's key. When a body of work needs internal sequencing, prefer Sub-Tasks under one parent Task over several same-level Tasks.
 
-**4. Review the draft.** Run the review pass described in "Review pass" over the complete draft before showing it. Present the draft and the review findings together in one message.
+For bug reports use the structure in `bug-tickets.md` instead of the template below. When the draft proposes issue links, read `linking.md` for the link type choice.
+Done when every issue to be created is written out in full.
 
-**5. Present and wait for explicit confirmation.** Show the user the drafted list before calling any create/edit tool. This applies to *every* batch of tickets, not just once per conversation. Agreeing to a plan is not the same as approving the exact tickets that implement it.
+**4. Review the draft.** Run the "Review pass" below over the complete draft. Present draft and findings together in one message.
 
-Nothing reaches the target system without a confirmation for exactly that content. This covers creating issues, editing existing ones, comments, issue links, labels and status transitions. If the user changes something after seeing the draft, show the changed items again in their final form and wait again. A change request is an instruction, not an approval of the result. When only part of the batch changed, re-show only that part and state plainly that the rest is unchanged. If the user asks for an Epic and none of the existing ones fit, propose a concrete name and description and get a decision before creating it. Don't default to creating one silently, and don't default to reusing an ill-fitting existing Epic either.
+**5. Present and wait for explicit confirmation.** Show the drafted list before calling any create/edit tool, for *every* batch, not once per conversation. Agreeing to a plan is not approving the exact tickets.
 
-**6. Create in dependency order.** Epic before its children. Parent Task before its Sub-Tasks, because Sub-Tasks require an existing parent key at creation time. Set the issue links once all issues of the batch exist, see "Verlinkung".
+Nothing reaches the target system without a confirmation for exactly that content. This covers creating issues, editing, comments, issue links, labels and status transitions. If the user changes something after seeing the draft, show the changed items again in their final form and wait again. A change request is an instruction, not an approval of the result. When only part of the batch changed, re-show only that part and state that the rest is unchanged. If an Epic is requested and none of the existing ones fit, propose a concrete name and description and get a decision first. Don't create one silently, and don't reuse an ill-fitting one by default.
 
-**7. Report back.** After creation, map every created key to its title and role so the user can cross-reference against the draft they approved, for example a small table with key, summary, type and parent.
+**6. Create in dependency order.** Epic before its children, parent Task before its Sub-Tasks (they need an existing parent key). Set the issue links once all issues of the batch exist, following `linking.md`.
+
+**7. Report back.** Map every created key to its title and role, for example a small table with key, summary, type and parent, so the user can cross-reference against the approved draft.
 
 ## Writing style
 
-These rules apply to everything that ends up in Jira: summaries, descriptions, comments, and acceptance criteria. The goal is text that reads like a colleague wrote it quickly and precisely.
+Applies to everything that ends up in Jira: summaries, descriptions, comments, acceptance criteria. The text reads like a colleague wrote it quickly and precisely.
 
-**Hard rules:**
-
-- **No dashes as punctuation.** No em dash, no en dash, and no hyphen used as a sentence break. Split the sentence, use a comma, or use parentheses instead. Hyphens inside compound words stay, so "Multi-Repo" and "E-Mail" are fine, but "Der Import läuft nachts - danach folgt der Export" is not.
+- **No dashes as punctuation.** No em dash, no en dash, no hyphen as a sentence break. Split the sentence, use a comma or parentheses. Hyphens inside compound words stay ("Multi-Repo", "E-Mail"), but "Der Import läuft nachts - danach folgt der Export" is not allowed.
 - **No semicolons.** Use a period or a comma.
-- **No colon inside a running sentence** to introduce an aside. A colon before a list or before an enumeration is fine.
-- Write plain declarative sentences. Short is better than balanced.
-- No filler openers such as "Im Rahmen dieses Tickets", "Ziel dieses Tickets ist es", "Es gilt zu beachten". Say the thing directly.
-- No marketing adjectives ("robust", "nahtlos", "umfassend", "effizient") unless they carry a measurable meaning in context.
-- No rhetorical tricolons or "nicht nur X, sondern auch Y" constructions.
-- Use the team's vocabulary from existing tickets and from the codebase, not generic synonyms.
-- Active voice with a clear actor where an actor exists. Passive is fine for system behavior.
-- **Spell out technical abbreviations once per ticket**, at the first occurrence, with the long form in parentheses right after it, for example "SSO (Single Sign-on)" or "JPA (Java Persistence API)". Use the short form for the rest of the ticket. Skip this only for abbreviations the whole team reads every day, such as API or URL. The test is whether someone who joined the team this month would have to look it up. Domain and project abbreviations count too, not just technical ones.
+- **No colon inside a running sentence** to introduce an aside. A colon before a list or enumeration is fine.
+- Plain declarative sentences, short over balanced.
+- No filler openers ("Im Rahmen dieses Tickets", "Ziel dieses Tickets ist es", "Es gilt zu beachten").
+- No marketing adjectives ("robust", "nahtlos", "umfassend", "effizient") unless they carry a measurable meaning.
+- No rhetorical tricolons or "nicht nur X, sondern auch Y".
+- Use the team's vocabulary from existing tickets and the codebase.
+- Active voice with a clear actor where one exists. Passive is fine for system behavior.
+- **Spell out technical abbreviations once per ticket** at the first occurrence, long form in parentheses right after it, for example "SSO (Single Sign-on)" or "JPA (Java Persistence API)". Skip it only for abbreviations the whole team reads every day, such as API or URL. Test: would someone who joined this month have to look it up? Domain and project abbreviations count too.
 
-**Language:** match whatever language the project and user already use for tickets. Don't default to English if the team writes in German, or the other way round. Check a couple of existing issues in the project if unsure.
+**Language:** match the language the project and user already use for tickets. Check a couple of existing issues if unsure.
 
-**Self-check before presenting:** scan the drafted text for the characters `—`, `–`, ` - ` and `;`. If any appear outside a compound word, rewrite that sentence. Do not just swap the character for a comma when the sentence was only holding together because of it, restructure it.
+**Self-check before presenting:** scan the draft for `—`, `–`, ` - ` and `;`. If any appear outside a compound word, rewrite the sentence. Where the sentence only held together because of the character, restructure it instead of swapping in a comma.
 
 ## Summaries
 
-The summary is the one line that shows up on the board, in the backlog, in every filter and in every notification. Most people never open the description, so the summary has to carry the ticket on its own.
+The summary shows on the board, in the backlog, in filters and in notifications. Most people never open the description, so it carries the ticket on its own.
 
 **Knapp und trotzdem passend.** The summary names what is inside this ticket, not the category it belongs to. Both failure directions are common:
 
 - Too vague. "Löschfristen anpassen" or "Refactoring Antragsservice" could sit on fifteen different tickets. If another ticket in the same area could carry the same summary word for word, it is not a summary yet, it is a label for the area.
-- Too full. The whole description squeezed into one line. If the summary needs a subordinate clause or an "und" to stay accurate, the detail belongs into the Ziel, or the ticket needs a split, see Check 1.
+- Too full. The whole description squeezed into one line. If the summary needs a subordinate clause or an "und" to stay accurate, the detail belongs into the Ziel, or the ticket needs a split (Check 1).
 
 Aim for the shortest wording that still says what is inside. Cut whatever the reader already gets from project, component, Epic or parent, and keep exactly what distinguishes this ticket from the ones next to it.
 
@@ -81,11 +89,9 @@ The form follows the issue type, because the types are different kinds of thing.
 - **Story, Task and Sub-Task: verb in the infinitive at the end, object first.** "Löschfristenjob auf Mandantentrennung umstellen", "JWTUtil threadsicher machen". Putting the object first keeps the distinguishing noun in the leftmost column of the backlog, where a nominal summary would show "Umstellung" or "Anpassung" for the twentieth time in a row.
 - **Bug: a declarative sentence in the present tense** that states the wrong behavior. "Beihilfeberechnung rundet Teilbeträge kaufmännisch statt ab". Never name the suspected fix, because at the time of writing nobody knows whether it is the cause. "Rundung korrigieren" claims a solution the ticket has not earned yet.
 
-The infinitive is not just a style choice. A nominalization hides missing precision, so "Anpassung des Löschfristenjobs" looks like a finished summary while saying nothing. The infinitive forces a real verb, and an empty one like "anpassen" is then obvious at a glance.
-
 Further rules, independent of type:
 
-- One line, aim for under roughly 70 characters so it is not cut off in board and backlog views. German nominalizations blow through this quickly through genitive chains, which is another reason the infinitive wins for work items.
+- One line, aim for under roughly 70 characters so it is not cut off in board and backlog views.
 - Name the outcome, not the activity.
 - No issue type in the text ("Task: ...", "Bug: ..."), the type is its own field.
 - No filler openers such as "Anpassung von", "Überarbeitung der", "Konzept für".
@@ -95,6 +101,8 @@ Further rules, independent of type:
 - The abbreviation rule from "Writing style" does not apply here. There is no room for it in one line, so the long form goes into the Ziel.
 
 ## Ticket description template
+
+For bug reports use the structure in `bug-tickets.md` instead of this template.
 
 Structure every description with these sections, in this order, using real Markdown headers or bold. Omit a section entirely when it doesn't apply, don't write an empty placeholder.
 
@@ -112,14 +120,14 @@ The writing style rules work on the sentence level. Generated text is often reco
 - Every bullet has the same length and the same build, often with a bold keyword and a colon at the start. Real notes are uneven, some bullets are three words and some are a full sentence.
 - Aufgaben start with the same stereotyped phrase, such as "Sicherstellen, dass …", "Implementierung von …" or "Anpassung der …". Write what is done: "Rundung in BeihilfeRechner auf abrunden umstellen".
 - Hedges without a real condition, such as "gegebenenfalls", "bei Bedarf" or "falls erforderlich". Either the condition is known and gets named, or the item is in scope, or it goes.
-- Explanations of things the team already knows, for example what a feature flag is or why tests matter.
+- Explanations of things the team already knows, for example what a feature flag is.
 - Headings or bold labels inside a section that has only three lines.
 
 Test: would a developer in the team have written this ticket in this form in five minutes? If the text looks more polished than the tickets around it in the backlog, it is too polished.
 
 ## Jede Information einmal
 
-Every piece of information appears exactly once in the ticket, in the section where it belongs. A reader who finds the same thing twice starts looking for the difference between the two versions.
+Every piece of information appears once in the ticket, in the section where it belongs. A reader who finds it twice looks for the difference.
 
 Typical duplicates:
 
@@ -133,16 +141,16 @@ Hints that would fit any ticket carry no information and get deleted, for exampl
 
 Descriptions contain no references to other tickets, neither as a key nor as a paraphrase like "siehe die Story zur Oberfläche". There is no exception to this rule, for no issue type.
 
-A reference in the text confuses the reader. It suggests that part of the work is hidden in the other ticket and that they have to read it to do this one. Tickets have to be understandable on their own.
+A reference suggests that part of the work is hidden in the other ticket. Tickets have to be understandable on their own.
 
-- Relations between tickets go into issue links, see "Verlinkung". The board and the filters show them there, and they don't pretend to be part of the description.
+- Relations between tickets go into issue links, see "Verlinkung" in `linking.md`. The board and the filters show them there, and they don't pretend to be part of the description.
 - If something from another ticket is needed to understand this one, for example a decision made there, take over the content and summarize it in one sentence in the Kontext, without the key.
 - State the scope boundary as a fact about this ticket. "Die Oberfläche bleibt unverändert" instead of "Oberfläche siehe CD-91". The reader learns what is out of scope without being sent somewhere else.
 - The same applies to Epics, Sub-Tasks and bug reports. A Sub-Task does not point to its siblings, and a bug names the causing change in the Analyse by content, while the relation itself becomes a "verursacht" link.
 
 ## Akzeptanzkriterien kurz halten
 
-Long criteria lists are the most common defect in our tickets. They read like thoroughness and cost real time, because every line has to be checked at acceptance, discussed in refinement and kept in sync when the ticket changes. A ticket with twelve criteria gets skimmed, so in practice it has none.
+Long criteria lists are the most common defect in our tickets. Every line has to be checked at acceptance, discussed in refinement and kept in sync, and a ticket with twelve criteria gets skimmed.
 
 **Target three criteria, five is the ceiling.** For a Sub-Task one is often enough. If you cannot get under six, that is a finding, not a formatting problem. Either the ticket is too big and Check 1 applies, or most of the lines are not acceptance criteria at all.
 
@@ -163,40 +171,9 @@ Merge before you cut. Criteria that always pass together or fail together are on
 
 Tests are covered by one line, not by one line per test. "Die Regressionstests für die Rundung sind grün" is enough, the test names belong into the Aufgaben or into Technische Hinweise.
 
-## Bug-Tickets
-
-A bug report answers different questions than a piece of planned work, so it gets its own structure. Use these sections instead of Ziel/Kontext/Aufgaben.
-
-- **Beobachtetes Verhalten** is what the system actually does, described precisely and without interpretation. Quote the exact message, value or state.
-- **Erwartetes Verhalten** is what it should do instead, plus where that expectation comes from: a spec, a ticket, a legal rule, or the behavior before a change.
-- **Reproduktion** is a numbered list of steps with concrete test data, followed by how reliably it reproduces (immer, sporadisch, nur mit bestimmten Daten). If it is not reproducible yet, write that down explicitly instead of dropping the section.
-- **Umgebung** is whatever is relevant to narrow it down: version or build, stage, browser, database, tenant, user role, time of occurrence.
-- **Auswirkung** is who is affected, how often, and what the damage is (falsche Auszahlung, blockierter Prozess, kosmetisch). This is what drives priority, so it is not optional.
-- **Analyse** is optional and holds what is already known about the cause: a stack trace excerpt, a suspected code location, a related change. Only write it when there is something concrete.
-- **Akzeptanzkriterien** work as usual and are usually two lines. The reproduction steps no longer produce the wrong behavior, and a regression test that fails without the fix is green with it.
-
-Rules for bug tickets:
-
-- Before drafting a bug from someone else's report, try to reproduce it from the given steps or check the claim in the code. Say in the draft whether it was confirmed, failed or could not be checked.
-- Don't write a solution into the ticket before the cause is understood. If the fix is already clear and agreed, it belongs under Analyse, and the ticket stays a bug instead of turning into a task.
-- Missing functionality is not a bug. If nothing ever worked differently, it is a Task or a Story. Decide this before drafting, because it changes the template.
-- Several separate defects in the same area are separate tickets, even when they were found in one session. Bundle them only when they share one cause and one fix.
-
-## Bestehende Tickets ändern
-
-Someone else may have written the ticket, and other people may already have read it and planned around it. Editing is additive by default.
-
-- Read the current issue before touching it. Never send a description that was composed without seeing what is in the field right now.
-- Add to what is there instead of replacing it. Keep the original wording even when your own phrasing would be tighter. Rewriting a ticket wholesale destroys the record of who meant what, and it makes the change unreviewable for the person who wrote it.
-- A full replacement needs an explicit instruction from the user for that specific ticket.
-- Show what will change before writing: which section, the current text, the new text. A short before and after is enough, and the confirmation rule from step 5 applies unchanged.
-- When the addition is a contribution to the discussion rather than a change to the specification, for example a finding from the review pass on a ticket that belongs to someone else, write a comment instead of editing the description.
-- Keep the section order of the template when you add a section that was missing.
-- Every edit notifies the watchers. Collect several changes to the same issue into one edit instead of a series of small ones.
-
 ## Review pass
 
-Run this over the finished draft, before the user sees it. Run it again on request for tickets that already exist in Jira, in that case fetch the issue first and report findings as suggested edits.
+Run this over the finished draft before the user sees it. Run it again on request for tickets that already exist in Jira, in that case fetch the issue first and report findings as suggested edits.
 
 Review each drafted issue against the four checks below, then report. The review reports and proposes, it never silently rewrites an approved draft or creates additional issues on its own.
 
@@ -258,15 +235,11 @@ For every proposed Sub-Task give a summary and one line of scope, so the user ca
 
 ### Check 4: Konsistenz und Stil
 
-- Ziel, Aufgaben and Akzeptanzkriterien describe the same piece of work, without one of them being wider than the others.
-- Count the Akzeptanzkriterien. More than five is a finding. Report which lines are restated Aufgaben, standard practice from the Definition of Done or implementation detail, and propose the shortened list. If nothing can go, say that the ticket is too big and hand it to Check 1.
-- The summary matches what the description actually asks for.
+- Ziel, Aufgaben and Akzeptanzkriterien describe the same piece of work, none wider than the others. The summary matches what the description asks for.
 - Parent, issue type and labels fit the content.
-- The description contains no references to other tickets, see "Keine Verweise auf andere Tickets". Every reference found is a finding, with a proposal for the link that replaces it and, where needed, the sentence that takes over its content. On an existing ticket written by someone else, report it as a suggested edit instead of removing it.
-- No information appears twice, and there are no hints that would fit any ticket, see "Jede Information einmal".
-- The text reads like the tickets around it, see "Wie ein Kollege schreibt".
-- The writing style rules hold, in particular no dashes, no semicolons, and every abbreviation that needs it is spelled out once.
-- The summary follows the rules in "Summaries" and matches what a reader would expect to find in the description. Run the standalone test explicitly: does the summary alone say what changes, or does it only name an area, and could a neighbouring ticket carry the same line?
+- Acceptance criteria: more than five is a finding. Report which lines are restated Aufgaben, Definition of Done practice or implementation detail, and propose the shortened list. If nothing can go, the ticket is too big, hand it to Check 1.
+- Every reference to another ticket is a finding, with the replacing link and, where needed, the sentence that takes over its content. On an existing ticket written by someone else, report it as a suggested edit.
+- The sections "Writing style" (no dashes, no semicolons, abbreviations spelled out once), "Summaries" (run the standalone test: does the summary alone say what changes, and could a neighbouring ticket carry the same line?), "Wie ein Kollege schreibt" and "Jede Information einmal" hold.
 
 ### Review output format
 
@@ -287,33 +260,4 @@ Keep the open decisions to real forks, so the user can answer them in one messag
 
 ## Formatting gotcha (read before calling the create/edit tool)
 
-When composing the description parameter for a tool call, write it as genuine multi-paragraph text with real line breaks between sections and bullet points, the same way you'd write a normal chat message. Do **not** build the string by concatenating literal `\n` or `\n\n` characters into what is otherwise a single-line value. Several Jira tool integrations render that literally instead of interpreting it as a line break, which produces descriptions with visible `\n\n` in them. If you are unsure whether your call will render correctly, create or edit one issue first and read back its rendered description before doing the rest of the batch.
-
-When extending an existing issue whose description holds images or attachments, read it with `responseContentFormat: html` and write it back with `contentFormat: html`. In the default markdown format `editJiraIssue` drops inline media.
-
-## Issue type & hierarchy notes
-
-- **Epic** is a durable theme or area, not a single deliverable. Only propose creating one when the work doesn't fit any existing Epic, and check first.
-- **Story** is user-facing functionality framed around a user goal. Use it when the project distinguishes Story from Task, which not all projects do. Check the project's configured issue types.
-- **Task** is a scoped, well-defined piece of work that is neither a user story nor a bug.
-- **Bug** tracks incorrect existing behavior, not new work.
-- **Sub-Task** is a smaller piece of a single parent Task or Story. It always needs a `parent` field set to that parent's key, and its issue type name must be looked up per project, see step 2.
-
-When a body of work is large enough to need internal sequencing, for example "this can't start until that other part is done", prefer modeling that as Sub-Tasks under one parent Task rather than several same-level Tasks. That keeps the dependency visible in Jira's hierarchy instead of only in a description.
-
-## Verlinkung
-
-A dependency that lives only in a sentence in a description is invisible on the board, in filters and in every planning view. Real relations belong into issue links.
-
-With the Atlassian plugin, links are created via `executeWrite` with `createJiraIssueLink`. Look up the link type names first via `executeRead` with `listJiraIssueLinkTypes`.
-
-- The link replaces any mention in the description. Never write a key into the text in addition to the link.
-- Look up which link types the project actually offers before using one, they are configured per site and are often renamed.
-- Choose the type by what the relation really is instead of defaulting to "hängt zusammen mit" for everything:
-  - **blockiert / wird blockiert von** for a hard order, where one ticket cannot start or cannot finish before the other is done. This is the type to use for the pieces that come out of a split in Check 1.
-  - **hängt zusammen mit** for context that is worth knowing without implying an order.
-  - **dupliziert** when the same work is already tracked elsewhere. Prefer closing one of the two over keeping both alive and linked.
-  - **verursacht** between a change and the bug it produced.
-- Parent and child is hierarchy, not a link. Don't model a Sub-Task relation as a "hängt zusammen mit" link on top of it.
-- If two tickets could be worked on at the same time by two people, the relation is "hängt zusammen mit", not "blockiert". Blocking claims something stronger than most relations deserve.
-- Propose the links in the draft together with the tickets so they are covered by the same confirmation, then create them once the issues exist.
+Write the description parameter as genuine multi-paragraph text with real line breaks between sections and bullets, like a normal chat message. Do **not** build the string by concatenating literal `\n` or `\n\n` into a single-line value. Several Jira tool integrations render that literally, leaving visible `\n\n` in the description. If unsure, create or edit one issue first and read back its rendered description before doing the rest of the batch.
