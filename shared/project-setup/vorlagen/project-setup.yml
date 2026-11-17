@@ -1,0 +1,19 @@
+# project-setup Vorlage v{{VORLAGENVERSION}}
+# Diese Datei liest der Skill project-setup beim zweiten Lauf.
+# Er hält fest, was eingerichtet wurde und mit welcher Vorlagenversion.
+vorlagenversion: {{VORLAGENVERSION}}
+eingerichtet_am: {{DATUM}}
+aktualisiert_am: {{DATUM}}
+sprache: {{SPRACHE}}
+ci_plattform: {{CI_PLATTFORM}}
+# Gewählte Variante: kombination, conventional oder ohne_typ
+commit_standard: {{COMMIT_VARIANTE}}
+ticket_praefix: {{TICKET_PRAEFIX}}
+ki_hinweis: {{KI_HINWEIS}}
+# Je gewähltem Baustein eine Zeile, z. B. "  - coding_standards"
+bausteine:
+{{BAUSTEINE}}
+# Jede aus einer Vorlage angelegte Datei mit Zielpfad und Vorlagenversion,
+# z. B. "  CODING_STANDARDS.md: 1" oder "  docs/adr/0001-architekturentscheidungen-festhalten.md: 1"
+dateien:
+{{DATEIEN}}
