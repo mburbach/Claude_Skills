@@ -17,5 +17,14 @@ Teile einen model-invoked Skill nur auf, wenn ein eigenes Leitwort ihn allein au
 
 Skills liegen im Repo Claude_Skills: `claude-skills/<skill>/`, `codex-skills/<skill>/`, gemeinsame Dateien in `shared/<skill>/`. `~/.claude/skills/` und `~/.codex/skills/` enthalten Symlinks auf sie, ein neuer Skill braucht je einen.
 
-- Der Claude-Zwilling ist englisch und nutzt Subagenten, Modellwahl und agentmemory. Dieser Codex-Zwilling ist deutsch und nutzt Subagenten nur, wenn der Nutzer Delegation ausdrücklich verlangt. Er lässt Claude-only-Werkzeuge weg (Agent, agentmemory, Modellwahl).
+Ein Codex-Zwilling weicht vom Claude-Skill in diesen Punkten ab. Prüfe jeden einzeln:
+
+- **Sprache und Stil**: Deutsch. Keine Gedankenstriche als Satzzeichen, keine Semikola, Abkürzungen einmal ausschreiben.
+- **Aufruf**: Claude nutzt `disable-model-invocation: true` im Frontmatter. Codex kennt diesen Schlüssel nicht. Ein vom Nutzer ausgelöster Zwilling bekommt `agents/openai.yaml` mit `policy: allow_implicit_invocation: false` und `interface` (`display_name`, `short_description`).
+- **Fragen an den Nutzer**: kein `AskUserQuestion`. Frage im Klartext, Runden wie im Zwilling von grilling.
+- **Subagenten und Modellwahl**: kein `Agent`, keine Modellwahl. Delegiere nur, wenn der Nutzer es verlangt.
+- **Gedächtnis**: Codex hat den agentmemory-MCP-Server und den Shell-Befehl `am-search`. Nutze `memory_save` und `am-search` wie im Claude-Skill, mit denselben `project`-Werten. Codex lädt den Werkzeugsatz `core`: `memory_save`, `memory_recall`, `memory_smart_search` und `memory_sessions` gibt es, `memory_lesson_save` nicht. Eine Lesson schreibst du dort als `memory_save` mit `type` = `fact` und `lesson` in `concepts`.
+- **Pfade**: `~/.codex/skills`, `~/.codex/sessions`, `~/.codex/config.toml`, `~/.codex/AGENTS.md` statt der `~/.claude`-Entsprechungen. Nenne beide Seiten, wenn der Skill Logs beider Werkzeuge liest.
+- **Gemeinsame Dateien**: verweise relativ zum Skill-Ordner als `../../shared/<skill>/`.
+- **Selbstprüfung**: suche im Zwilling mit grep nach Claude-only-Namen (`AskUserQuestion`, `Agent`, `disable-model-invocation`, `~/.claude`) und führe `shared/scripts/stilpruefung.sh` für Gedankenstriche und Semikola aus.
 - Prüfe nach einer Änderung an einem Zwilling, ob der andere dieselbe Änderung braucht.

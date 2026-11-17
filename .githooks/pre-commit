@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Einmal pro Klon aktivieren: git config core.hooksPath .githooks
+# Bricht den Commit ab, wenn gestagte Skilltexte Gedankenstriche oder Semikola enthalten.
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+mapfile -t dateien < <(git diff --cached --name-only --diff-filter=AM)
+
+# Ohne gestagte Dateien nichts prüfen (stilpruefung.sh ohne Argumente würde alles prüfen)
+if [ "${#dateien[@]}" -eq 0 ]; then exit 0; fi
+
+rc=0
+"$root/shared/scripts/stilpruefung.sh" "${dateien[@]}" || rc=$?
+
+if [ "$rc" -eq 1 ]; then
+  echo "pre-commit: Gedankenstrich oder Semikolon in deutschem Skilltext. Satz umbauen statt Zeichen tauschen." >&2
+  exit 1
+fi
+exit "$rc"
