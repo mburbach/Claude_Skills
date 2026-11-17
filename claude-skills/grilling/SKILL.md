@@ -22,7 +22,12 @@ Each round of answers reshapes the tree. Settled decisions push the frontier out
 
 ## Round format
 
-Ask in plain chat text in the user's language, written without dashes or semicolons. A round often has more questions and more reasoning than a selection dialog holds.
+Write in the user's language, without dashes or semicolons. Pick the form per round:
+
+- **Selection dialog** (`AskUserQuestion`): the round has at most 4 questions, each with 2 to 4 real alternatives and a reason that fits in one option description. Put your recommendation first, with "(Recommended)" in the label. Make each question stand on its own, chat text above the dialog may be hidden while it is open.
+- **Chat text**: everything else. More than 4 questions, long reasoning, or a question with no real alternative where only "ja" or "nein" fits.
+
+Chat text format:
 
 ```
 ❓ **F1: <Titel>**
