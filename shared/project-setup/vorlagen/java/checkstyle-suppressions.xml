@@ -1,0 +1,7 @@
+<!-- project-setup Vorlage v{{VORLAGENVERSION}} -->
+<!DOCTYPE suppressions PUBLIC "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+  <!-- Bestand: je Datei mit Verstößen eine Zeile, zum Beispiel
+  <suppress checks="AvoidStarImport|LineLength" files="AltKlasse\.java"/> -->
+</suppressions>

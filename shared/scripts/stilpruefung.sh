@@ -12,9 +12,9 @@ if [ "$#" -eq 0 ]; then
 else
   dateien=()
   for datei in "$@"; do
-    # Nur Markdown unter codex-skills/, alles andere still überspringen
+    # Nur Markdown unter codex-skills/ und shared/, alles andere still überspringen
     case "$datei" in
-      codex-skills/*.md) dateien+=("$datei") ;;
+      codex-skills/*.md|shared/*.md) dateien+=("$datei") ;;
     esac
   done
 fi
