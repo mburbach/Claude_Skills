@@ -58,11 +58,14 @@ Akzeptanzkriterien
 • <beobachtbares Ergebnis>
 • <beobachtbares Ergebnis>
 
+Nicht im Umfang
+• <bewusst ausgelassen, mit Grund>
+
 Technische Hinweise
 • <nur nicht offensichtliche technische Vorgaben>
 ```
 
-Lasse leere optionale Abschnitte weg. Verwende wenige echte Akzeptanzkriterien, meist zwei bis fünf. Standardarbeit aus der Definition of Done, Umsetzungsschritte und Wiederholungen gehören nicht hinein.
+Lasse leere optionale Abschnitte weg. Nicht im Umfang nur, wenn eine Grenze sonst unklar wäre. Ändert das Ticket bestehendes Verhalten, nenne im Kontext Ist und Soll in je einem Satz. Schneide vertikal, sodass jedes Ticket allein vorführbar ist. Breite Refactorings nach Expand und Contract schneiden: neue Form einführen, Aufrufer in Etappen umstellen, alte Form entfernen. Verwende wenige echte Akzeptanzkriterien, meist zwei bis fünf. Standardarbeit aus der Definition of Done, Umsetzungsschritte und Wiederholungen gehören nicht hinein.
 
 ### Bug
 

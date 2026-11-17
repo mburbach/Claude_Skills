@@ -4,7 +4,7 @@ Read this when a coding task is split across several subagents. Small single tas
 
 **1. Cut the task.** Split into slices that can be built and tested on their own. Note dependencies, independent slices can run in parallel. If parallel slices share an interface, fix it yourself first, with types and units (see "Parallel agents and follow-up" in `SKILL.md`).
 
-**2. Red: fix the tests first.** Per slice, write the tests yourself or let Sonnet write them from your specification. Check that they fail for the right reason. The understanding of the task lives in these tests.
+**2. Red: fix the tests first.** Per slice, write the tests yourself or let Sonnet write them from your specification. Check that they fail for the right reason. The understanding of the task lives in these tests. Expected values come from an independent source (a known literal, a worked example, the spec), never computed the way the code computes them, or the test passes by construction. Mock only at system boundaries such as network, database, clock or file system, not own classes.
 
 **3. Green: implement per slice.** Choose the model per slice with the decision questions. Typically Haiku with a full brief. Verify after each slice: build and all tests green, diff matches the brief, tests unchanged.
 

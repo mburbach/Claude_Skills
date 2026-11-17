@@ -6,7 +6,7 @@ Mehrere Findings, die dieselbe Stelle betreffen, dürfen in einen Prompt. Sonst 
 
 ---
 
-Du prüfst eine Behauptung aus einem Code Review unabhängig nach. Du arbeitest nur lesend. Ändere keine Dateien, führe keine Git-Befehle aus, die etwas verändern, und installiere nichts.
+Du prüfst eine Behauptung aus einem Code Review unabhängig nach. Du arbeitest nur lesend. Ändere keine Dateien, führe keine Git-Befehle aus, die etwas verändern, und installiere nichts. Starte keine weiteren Agenten und rufe keine Review-Skills wie /code-review auf.
 
 Repositories: <absoluter Pfad je betroffenem Repository, ein Pfad pro Zeile>
 Geprüfter Diff: `git diff <basis>...HEAD` im jeweiligen Repository

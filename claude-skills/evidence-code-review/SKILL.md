@@ -58,14 +58,14 @@ Ohne Ziel lässt sich nur Stil prüfen, keine Korrektheit. Deshalb zuerst verste
 
    Widersprechen sich Beschreibung, Kommentare und Schaubilder, gilt der neueste Stand. Der Widerspruch selbst gehört als Hinweis in den Kontext des Berichts. Weicht der Code von einem Schaubild ab, ist das ein Kandidat für ein Finding der Kategorie Architektur oder Korrektheit.
 2. **MR-Beschreibung.** GitLab: `glab mr view <nr>` oder `glab mr view` für den aktuellen Branch. GitHub: `gh pr view`. Ist kein CLI eingerichtet, weitermachen und im Bericht vermerken, dass die Beschreibung fehlte.
-3. **Projektdoku.** README, CLAUDE.md, `docs/` und ADRs (Architecture Decision Records), soweit sie den geänderten Bereich betreffen.
+3. **Projektdoku.** README, CLAUDE.md, AGENTS.md, CONTRIBUTING.md, CODING_STANDARDS.md (wenn vorhanden, immer), `docs/` und ADRs (Architecture Decision Records), soweit sie den geänderten Bereich betreffen.
 4. **Umfang.** `git fetch` ist erlaubt, es ändert nur Remote-Referenzen. Ist der Feature-Branch schon in einen anderen Branch gemergt (etwa `test`), als Basis den Abzweigpunkt nehmen (`git merge-base`), damit genau die Commits der Story im Diff stehen, und das im Kontext des Berichts vermerken. Dann:
    ```bash
    git diff <basis>...HEAD --stat
    git diff <basis>...HEAD --shortstat
    git log --oneline <basis>..HEAD
    ```
-   Anzahl Dateien, hinzugefügte und entfernte Zeilen festhalten. Sie stehen später im Kopf des Berichts.
+   Anzahl Dateien, hinzugefügte und entfernte Zeilen festhalten. Sie stehen später im Kopf des Berichts. Lässt sich die Basis nicht auflösen oder ist der Diff leer, hier abbrechen und nachfragen, bevor Build, /code-review oder Prüfer starten.
 5. **Mehrere Repositories.** Eine Story berührt oft mehrere Repositories, etwa Hauptanwendung und Microservices. Liegt das Arbeitsverzeichnis über mehreren Git-Repositories, alle Repositories suchen, in denen der Feature-Branch existiert (`git -C <repo> rev-parse --verify <branch>`), und den Diff für jedes einzeln ermitteln. Der Basis-Branch kann je Repository verschieden sein. Im Bericht erscheinen Umfang und Lauffähigkeit je Repository, und jeder Ort beginnt mit dem Namen des Repositories, zum Beispiel `beihilfeapigateway/src/main/java/.../JwtFilter.java:42`. Besonders auf Brüche zwischen den Repositories achten: ein entfernter Endpunkt, den ein anderes Repository noch aufruft, oder eine Prüfung, die beim Verschieben von einem Dienst in den anderen verloren geht.
 
 Kann das Ziel der Änderung nicht ermittelt werden, das offen im Bericht sagen und Korrektheitsaussagen als [Frage] formulieren, wo sie vom Ziel abhängen.
@@ -143,7 +143,7 @@ Beim Lesen die Checkliste aus Schritt 4 anwenden und Kandidaten sofort mit Datei
 | 🔴 | Korrektheit | Tut der Code, was er soll? Randfälle, `null`, Fehlerpfade, Nebenläufigkeit? |
 | 🟠 | Tests | Ist die neue Logik getestet? Würden die Tests einen Fehler finden? |
 | 🟠 | Architektur | Passt es zum bestehenden Design? Widerspricht es der Doku? |
-| 🟡 | Wartbarkeit | Toter Code, Hardcoding, Duplikate |
+| 🟡 | Wartbarkeit | Toter Code, Hardcoding, Duplikate, lange Methoden, lange Parameterlisten, Feature-Neid (Methode arbeitet vor allem mit Daten einer fremden Klasse), Datenklumpen (immer dieselben Werte zusammen übergeben), primitive Typen statt kleiner Werttypen, Schrotflinten-Änderung (eine Änderung zwingt zu Edits an vielen Stellen). Gerüche sind Urteile, höchstens [Sollte], meist [Nit] oder [Frage], immer mit konkretem Umbauvorschlag |
 | ⚪ | Stil | Tippfehler, Formatierung, Methodennamen. Tippfehler und Formatierung sollte ein Linter übernehmen, kein Mensch. Methodennamen siehe unten |
 
 Stil-Findings nur bündeln und knapp halten. Gleichartige Kleinigkeiten werden ein einziges [Nit] mit allen Fundstellen.

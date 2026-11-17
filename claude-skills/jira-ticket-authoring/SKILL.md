@@ -99,9 +99,10 @@ Further rules, independent of type:
 Structure every description with these sections, in this order, using real Markdown headers or bold. Omit a section entirely when it doesn't apply, don't write an empty placeholder.
 
 - **Ziel** is one or two sentences on what this achieves and why it is being done, not just what it contains.
-- **Kontext** is the background needed to understand the why: constraints, prior decisions, risks that motivate this work. Write it as two or three plain sentences, not as a bullet list. Skip it if the Ziel already says everything necessary.
+- **Kontext** is the background needed to understand the why: constraints, prior decisions, risks that motivate this work. Write it as two or three plain sentences, not as a bullet list. Skip it if the Ziel already says everything necessary. If the ticket changes existing behavior, state the current behavior (Ist) and the target behavior (Soll) in one sentence each.
 - **Aufgaben** are the concrete work items as a bullet list, written like short working notes a colleague would jot down. If the ticket spans clearly separate areas, for example backend and frontend or two independent components, split into labeled sub-lists (**Aufgaben Backend** / **Aufgaben Frontend**) instead of one flat list. Only do this when the split is real, don't force it for a single-area ticket.
 - **Akzeptanzkriterien** are the few observable conditions that decide whether the ticket is done. Specific and testable beats vague, so "Test X ist grün" beats "funktioniert". Keep the list short, see "Akzeptanzkriterien kurz halten".
+- **Nicht im Umfang** lists what a reader might expect here but is deliberately left out, one line each, with the ticket or reason if there is one. Only include it when a real boundary is unclear, it prevents scope creep in implementation and review.
 - **Technische Hinweise** are implementation pointers worth preserving, such as class or file names, patterns to follow, things to explicitly avoid. Name them without explaining around them. Only include this section if there is something concrete to say. It is the first section to drop if the ticket is straightforward.
 
 ## Wie ein Kollege schreibt
@@ -176,6 +177,7 @@ A bug report answers different questions than a piece of planned work, so it get
 
 Rules for bug tickets:
 
+- Before drafting a bug from someone else's report, try to reproduce it from the given steps or check the claim in the code. Say in the draft whether it was confirmed, failed or could not be checked.
 - Don't write a solution into the ticket before the cause is understood. If the fix is already clear and agreed, it belongs under Analyse, and the ticket stays a bug instead of turning into a task.
 - Missing functionality is not a bug. If nothing ever worked differently, it is a Task or a Story. Decide this before drafting, because it changes the template.
 - Several separate defects in the same area are separate tickets, even when they were found in one session. Bundle them only when they share one cause and one fix.
@@ -214,6 +216,8 @@ These signals are heuristics, not thresholds. If the team has its own convention
 If a split is warranted, propose the concrete new tickets with their summaries and a one-line scope each, plus which existing draft content moves where. Also name the sequencing between them.
 
 For bugs the check runs the other way round. Separate defects stay separate tickets even when they were found together, and only a shared cause justifies one ticket.
+
+Prefer vertical cuts, where each piece delivers something that can be shown or tested end to end on its own. For a broad refactoring across many places, cut along expand and contract: introduce the new form next to the old, move the callers in batches, then remove the old form.
 
 Counter-check before proposing: a split is wrong when the parts cannot be released or tested separately, when it produces a ticket that only makes sense together with its sibling, or when it just mirrors the technical layers of a single small change.
 
