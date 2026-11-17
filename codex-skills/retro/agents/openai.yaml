@@ -1,0 +1,5 @@
+interface:
+  display_name: "Retro"
+  short_description: "Session auswerten, Umgebung verbessern"
+policy:
+  allow_implicit_invocation: false
