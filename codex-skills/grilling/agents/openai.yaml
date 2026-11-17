@@ -1,0 +1,5 @@
+interface:
+  display_name: "Grilling"
+  short_description: "Plan in Fragerunden prüfen"
+policy:
+  allow_implicit_invocation: false
