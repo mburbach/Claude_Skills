@@ -1,0 +1,5 @@
+interface:
+  display_name: "Refactoring Legacy"
+  short_description: "Altcode ohne Verhaltensänderung umbauen"
+policy:
+  allow_implicit_invocation: false
