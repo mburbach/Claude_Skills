@@ -21,7 +21,7 @@ Refactoring existing code with unchanged behavior. Cleanup after a new feature s
 
 ## Phase 2: Analyse
 
-Read the code and judge it with the catalog `../../shared/code-smells.md` (resolved from this skill directory). Check build, tests and callers per candidate: test coverage and number of callers decide the risk.
+Read the code and judge it with the catalog `../../shared/code-smells.md` (resolved from this skill directory). Check build, tests and callers per candidate: test coverage and number of callers decide the risk. Read the build file (`pom.xml`, `package.json` and similar) once to know which libraries are already there: own code that one of them covers is a Reinvented Wheel.
 
 Present a list sorted by benefit to risk. Top: high effect, low risk (good tests, few callers). Per entry:
 

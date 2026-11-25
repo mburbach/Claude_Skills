@@ -20,7 +20,7 @@ Umbau von bestehendem Code bei unverändertem Verhalten. Für das Aufräumen nac
 
 ## Phase 2: Analysieren
 
-Lies den Code und beurteile ihn mit dem Katalog `../../shared/code-smells.md` (relativ zu diesem Skillordner). Prüfe pro Kandidat Build, Tests und Aufrufer: Testabdeckung und Anzahl der Aufrufer bestimmen das Risiko.
+Lies den Code und beurteile ihn mit dem Katalog `../../shared/code-smells.md` (relativ zu diesem Skillordner). Prüfe pro Kandidat Build, Tests und Aufrufer: Testabdeckung und Anzahl der Aufrufer bestimmen das Risiko. Lies einmal die Build-Datei (`pom.xml`, `package.json` und ähnliche), um die schon eingebundenen Bibliotheken zu kennen. Eigener Code, den eine davon abdeckt, ist ein Reinvented Wheel.
 
 Stelle eine Liste vor, sortiert nach Nutzen zu Risiko. Oben stehen Einträge mit hohem Effekt und niedrigem Risiko (gute Tests, wenige Aufrufer). Pro Eintrag:
 
