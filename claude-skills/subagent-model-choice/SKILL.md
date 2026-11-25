@@ -105,6 +105,7 @@ Ask these for every delegated piece of work. The answers decide the model.
 
 - **Goal in one sentence** and the done criterion (which tests turn green, which command must pass, which questions are answered).
 - **Exact files or systems** to read and to change, and what must not be touched (tests, public interfaces).
+- **Libraries already in the project** that fit the task, with their purpose ("jsoup: parse HTML and XML, escape"), for every brief that writes code, tests included. Without this, agents build their own parser next to an existing one.
 - **A short report format:** changed files, test result, anything unclear, no silent guessing. No file contents or long logs, every report lands in the orchestrator context. Give a fixed shape or a length limit for long results, or a result file.
 - **Which checks the agent runs itself.** The fast ones: typecheck, build, the affected tests, linter, fixed before reporting. Slow or broad checks stay with you: long full test suites, visual comparison over many outputs, end-to-end runs, anything on a live system. Name both.
 - **Current state when handing over mid-work.** Name uncommitted changes. Add: do not commit, no git commands that change state (`checkout`, `stash`, `reset`, `commit`), keep existing changes. If the changes belong to someone else and read-only agents need a clean state, use a reading copy (`boundaries.md`).
