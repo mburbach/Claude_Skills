@@ -143,7 +143,7 @@ Fertig, wenn alle vier Ebenen durchlaufen sind.
 | 🔴 | Korrektheit | Tut der Code, was er soll? Randfälle, `null`, Fehlerpfade, Nebenläufigkeit? |
 | 🟠 | Tests | Ist die neue Logik getestet? Würden die Tests einen Fehler finden? |
 | 🟠 | Architektur | Passt es zum bestehenden Design? Widerspricht es der Doku? |
-| 🟡 | Wartbarkeit | Toter Code, Hardcoding, Duplikate, lange Methoden, lange Parameterlisten, Feature-Neid (Methode arbeitet vor allem mit Daten einer fremden Klasse), Datenklumpen (immer dieselben Werte zusammen übergeben), primitive Typen statt kleiner Werttypen, Schrotflinten-Änderung (eine Änderung zwingt zu Edits an vielen Stellen). Gerüche sind Urteile, höchstens [Sollte], meist [Nit] oder [Frage], immer mit konkretem Umbauvorschlag |
+| 🟡 | Wartbarkeit | Toter Code, Hardcoding, Duplikate, lange Methoden, lange Parameterlisten, Feature-Neid (Methode arbeitet vor allem mit Daten einer fremden Klasse), Datenklumpen (immer dieselben Werte zusammen übergeben), primitive Typen statt kleiner Werttypen, Schrotflinten-Änderung (eine Änderung zwingt zu Edits an vielen Stellen). Erkennungszeichen und Zielform: `../../shared/code-smells.md`. Code Smells sind Urteile, höchstens [Sollte], meist [Nit] oder [Frage], immer mit konkretem Umbauvorschlag |
 | ⚪ | Stil | Tippfehler, Formatierung, Methodennamen. Tippfehler und Formatierung sollte ein Linter übernehmen, kein Mensch |
 
 Stil-Findings nur bündeln und knapp halten. Gleichartige Kleinigkeiten werden ein einziges [Nit] mit allen Fundstellen.
